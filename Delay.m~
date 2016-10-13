@@ -66,9 +66,6 @@ classdef Delay < audioPlugin
             Output = (1-DryWet).*Input + (DryWet).*(Output1);
         end
         % Set function
-        function set.DelayTime(plugin,DelayTime)
-            plugin.DelayTime = DelayTime;
-        
-        end
+        function set.DelayTime(plugin.DelayTime, )
     end
 end
