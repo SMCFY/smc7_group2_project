@@ -1,3 +1,7 @@
+deviceReader = audioDeviceReader;
+deviceWriter = audioDeviceWriter('SampleRate',deviceReader.SampleRate);
+deviceReader.SamplesPerFrame = 256;
+
 delay = Delay();
 disp('Begin Signal Input...')
 audioTestBench(delay);
