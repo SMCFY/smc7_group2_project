@@ -1,3 +1,6 @@
+%% This function is some matlab function found at
+% https://se.mathworks.com/matlabcentral/fileexchange/19236-some-basic-audio-features/content/SpectralCentroid.m
+
 function C = SpectralCentroid(signal,windowLength, step, fs)
 signal = signal / max(abs(signal));
 curPos = 1;
