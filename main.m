@@ -1,4 +1,5 @@
 deviceReader = audioDeviceReader;
+% deviceReader = dsp.AudioFileReader('kogekunst.wav');
 deviceWriter = audioDeviceWriter('SampleRate',deviceReader.SampleRate);
 deviceReader.SamplesPerFrame = 64;
 
