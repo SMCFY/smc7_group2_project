@@ -9,10 +9,10 @@ tic
 while toc<50
    
     mySignal = deviceReader();
-    myProcessedSignal = delay.process(mySignal);
+    myProcessedSignal = process(delay, mySignal);
     deviceWriter(myProcessedSignal);
     
-    C = centroid(mySignal, deviceReader.SampleRate);
+    %C = centroid(mySignal, deviceReader.SampleRate);
     %disp(C);
     
 end
