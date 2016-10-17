@@ -7,8 +7,7 @@ w = [1:length(x)].*fs/length(x); %center frequency of each bin
 
 
     
-C = sum(w.*X_mag)/sum(X_mag);
-   
+C = sum(w(1:length(w)/2).*X_mag(1:length(X_mag)/2))/sum(X_mag(1:length(X_mag)/2));   
 
 end
 
