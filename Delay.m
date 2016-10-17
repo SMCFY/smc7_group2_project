@@ -28,6 +28,8 @@ classdef Delay < audioPlugin
         
         % Initial sample rate.
         SR = 0
+        delayInSamples = 0; 
+
        
         % Initial write and read index.
         WriteIndex1 = 0
@@ -58,21 +60,23 @@ classdef Delay < audioPlugin
         % Set function
         function set.DelayTime(plugin,DelayTime)
             plugin.DelayTime = DelayTime;
-            delayInSamples = calcDelay();
+            delayInSamples = calcDelay(plugin);
         end
-    end
-end
-
-function del = calcDelay();
-                % Compute the delay value in samples.
+        
+        function del = calcDelay(plugin);
+            % Compute the delay value in samples.
             DelayVector1 = cast(plugin.DelayTime*SampleRate,'like',Input);
             
             % Calling LinearVariableFractionalDelay which performs variable
             % fractional delay by linear interpolating between samples
-             [Output1, plugin.WriteIndex1, plugin.ReadIndex1, plugin.DL1] = HelperLinearVariableFractionalDelay...
-                 (Input,DelayVector1,plugin.DL1,plugin.WriteIndex1, plugin.ReadIndex1);
-%             [Output2, plugin.WriteIndex2, plugin.ReadIndex2, plugin.DL1] = HelperLinearVariableFractionalDelay...
-%                 (Input,DelayVector1,plugin.DL1,plugin.WriteIndex1, plugin.ReadIndex1);
+            [Output1, plugin.WriteIndex1, plugin.ReadIndex1, plugin.DL1] = HelperLinearVariableFractionalDelay...
+                (Input,DelayVector1,plugin.DL1,plugin.WriteIndex1, plugin.ReadIndex1);
+            %             [Output2, plugin.WriteIndex2, plugin.ReadIndex2, plugin.DL1] = HelperLinearVariableFractionalDelay...
+            %                 (Input,DelayVector1,plugin.DL1,plugin.WriteIndex1, plugin.ReadIndex1);
             del = Output1;
-
+            
+        end
+        
+        
+    end
 end
