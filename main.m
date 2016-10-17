@@ -4,7 +4,7 @@ deviceReader.SamplesPerFrame = 256;
 
 delay = Delay();
 disp('Begin Signal Input...')
-%audioTestBench(delay);
+audioTestBench(delay);
 tic
 while toc<50
    
@@ -13,7 +13,7 @@ while toc<50
     deviceWriter(myProcessedSignal);
     
     C = centroid(mySignal, deviceReader.SampleRate);
-    disp(C);
+    %disp(C);
     
 end
 

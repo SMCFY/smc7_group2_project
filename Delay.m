@@ -55,12 +55,12 @@ classdef Delay < audioPlugin
             DryWet = plugin.Mix/100;
 
             % Using DryWetMix value to adjust dry wet ratio.
-            Output = (1-DryWet).*Input + (DryWet).*(delayInSamples);
+            Output = (1-DryWet).*Input + (DryWet).*(plugin.delayInSamples);
         end
         % Set function
         function set.DelayTime(plugin,DelayTime)
             plugin.DelayTime = DelayTime;
-            delayInSamples = calcDelay(plugin);
+            plugin.delayInSamples = calcDelay(plugin);
         end
         
         function del = calcDelay(plugin);
@@ -73,10 +73,7 @@ classdef Delay < audioPlugin
                 (Input,DelayVector1,plugin.DL1,plugin.WriteIndex1, plugin.ReadIndex1);
             %             [Output2, plugin.WriteIndex2, plugin.ReadIndex2, plugin.DL1] = HelperLinearVariableFractionalDelay...
             %                 (Input,DelayVector1,plugin.DL1,plugin.WriteIndex1, plugin.ReadIndex1);
-            del = Output1;
-            
-        end
-        
-        
+            del = Output1;      
+        end  
     end
 end
