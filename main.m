@@ -1,5 +1,5 @@
-deviceReader = audioDeviceReader;
-% deviceReader = dsp.AudioFileReader('kogekunst.wav');
+%deviceReader = audioDeviceReader;
+deviceReader = dsp.AudioFileReader('sp/sound_files/Gregorythme_SOOML.mp3');
 deviceWriter = audioDeviceWriter('SampleRate',deviceReader.SampleRate);
 deviceReader.SamplesPerFrame = 64;
 
