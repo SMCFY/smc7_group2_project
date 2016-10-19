@@ -1,21 +1,24 @@
-%deviceReader = audioDeviceReader;
-deviceReader = dsp.AudioFileReader('Dude.wav');
+deviceReader = audioDeviceReader;
+%deviceReader = dsp.AudioFileReader('Dude.wav');
 deviceWriter = audioDeviceWriter('SampleRate',deviceReader.SampleRate);
 deviceReader.SamplesPerFrame = 64;
+
+fs = deviceReader.SampleRate;
 
 delay = Delay();
 disp('Begin Signal Input...')
 audioTestBench(delay);
 tic
-while toc<10
+while toc<50
    
     mySignal = deviceReader();
-    myProcessedSignal = process(delay, mySignal);
+    myProcessedSignal = process(mySignal);
     deviceWriter(myProcessedSignal);
     
-    C = centroid(mySignal, deviceReader.SampleRate);
-    % delay.Mix = C/fs; % Adaptive part with some mapping 
-    disp(C);
+    %C = centroid(mySignal, deviceReader.SampleRate);
+    %delay.DelayTime = C/fs; % Adaptive part with some mapping 
+    
+    %disp(C);
     
 end
 
