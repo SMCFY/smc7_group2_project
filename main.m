@@ -15,8 +15,9 @@ while toc<50
     myProcessedSignal = process(delay, mySignal);
     deviceWriter(myProcessedSignal);
     
-    C = centroid(mySignal, deviceReader.SampleRate);
-    delay.DelayTime = C/fs; % Adaptive part with some mapping 
+  %  C = centroid(mySignal, deviceReader.SampleRate);
+  %  delay.DelayTime = C/fs; % Adaptive part with some mapping 
+    
     %disp(C);
     
 end
