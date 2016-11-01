@@ -59,13 +59,15 @@ classdef Delay < audioPlugin
         end
         % Set function
         function set.DelayTime(plugin, DelayTime)
+            validateattributes(DelayTime,{'numeric'},{'scalar','real','>=',0,'<=',1},'Delay','DelayTime')
+
             plugin.DelayTime = DelayTime;
-            disp('set delay time')
+           % disp('set delay time')
             % plugin.delayInSamples = calcDelay(plugin);
         end
         function set.Mix(plugin, Mix)
             plugin.Mix = Mix;
-            disp('set mix')
+           % disp('set mix')
 
         end
         function del = calcDelay(plugin, Input)
