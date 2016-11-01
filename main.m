@@ -7,7 +7,7 @@ fs = deviceReader.SampleRate;
 
 delay = Delay();
 disp('Begin Signal Input...')
-% audioTestBench(delay);
+
 tic
 while toc<50
    
@@ -18,7 +18,7 @@ while toc<50
     C = centroid(mySignal');
     delay.DelayTime = C/100; % Adaptive part with some mapping 
     
-   % disp(C);
+    %disp(C);
     
 end
 
