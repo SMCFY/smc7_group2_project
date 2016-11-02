@@ -135,11 +135,12 @@ classdef Delay2 < audioPlugin
             
             % Delay the input
             xd = obj.pFractionalDelay(delayInSamples, x);
-            
+            l = length(xd)
+            rev = [xd(l:1,1) xd(l:1,2)]
             % Calculate output by adding wet and dry signal in appropriate
             % ratio
             mix = obj.WetDryMix;
-            y = (1-mix)*x + (mix)*(obj.Gain.*xd);
+            y = (1-mix)*x + (mix)*(obj.Gain.*rev);
         end
 
     end
