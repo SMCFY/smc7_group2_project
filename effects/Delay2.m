@@ -63,7 +63,7 @@ classdef Delay2 < audioPlugin
         %pSR Sample rate
         pSR
         
-        
+        rBuffer
     end
     
     methods
@@ -74,6 +74,7 @@ classdef Delay2 < audioPlugin
                 'FeedbackLevel', 0.35, ...
                 'SampleRate', fs);
             obj.pSR = fs;
+            obj.rBuffer = [];
         end
         function set.Effect(plugin, effect)
             plugin.Effect = effect;
@@ -97,6 +98,7 @@ classdef Delay2 < audioPlugin
             
             % Reset delay
             obj.pFractionalDelay.SampleRate = fs;
+            obj.rBuffer = [];
             reset(obj.pFractionalDelay);
         end
         
@@ -108,9 +110,9 @@ classdef Delay2 < audioPlugin
             
             switch obj.Effect
                 case 'Reverse'
-                    xd = reverse(xd);
+                    [xd, obj.rBuffer] = reverse(xd, obj.rBuffer);
                 case 'Reverb'
-                    x = reverb(x);
+                    [xd, obj.rBuffer] = reverse(xd, obj.rBuffer);
                 case 'Centroid' 
                 case 'Nothing'
             end

@@ -1,3 +1,5 @@
-function out = reverse(x)
-    out = flipud(x);
+function [out, buf] = reverse(x, buf)
+    
+    out = flip(x);
+    buf = out;
 end
