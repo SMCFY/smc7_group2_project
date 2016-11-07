@@ -1,5 +1,6 @@
-function [out, buf] = reverse(x, buf)
-    
+function [out] = reverse(x)
+    ham = hamming(length(x));
+    x = x.*ham;
     out = flip(x);
-    buf = out;
+    
 end

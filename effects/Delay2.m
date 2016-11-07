@@ -14,6 +14,8 @@ classdef Delay2 < audioPlugin
         Gain = 0.5
         
         Effect = 'Nothing'
+        
+        Fc = 20
     end
        
     properties (Dependent)
@@ -52,7 +54,8 @@ classdef Delay2 < audioPlugin
             audioPluginParameter('WetDryMix','DisplayName','Wet/dry mix','Label','','Mapping',{'lin',0 1}),...
             audioPluginParameter('Effect',...
                 'DisplayName','Effect',...
-                'Mapping',{'enum','Nothing','Reverse', 'Reverb','Centroid'}));
+                'Mapping',{'enum','Nothing','Reverse', 'Reverb','HighPass Filter'}),...
+             audioPluginParameter('Fc','DisplayName','Fc','Label','Hz','Mapping',{'log',20 20000}));
     end
     
     properties (Access = private)        
@@ -64,6 +67,11 @@ classdef Delay2 < audioPlugin
         pSR
         
         rBuffer
+        
+        % internal state
+        z = zeros(2)
+        b = zeros(1,3)
+        a = zeros(1,3)
     end
     
     methods
@@ -100,6 +108,16 @@ classdef Delay2 < audioPlugin
             obj.pFractionalDelay.SampleRate = fs;
             obj.rBuffer = [];
             reset(obj.pFractionalDelay);
+            
+            % initialize internal state
+            obj.z = zeros(2);
+          
+            [obj.b, obj.a] = highPassCoeffs(obj.Fc, fs);
+        end
+        function set.Fc(obj, Fc)
+            obj.Fc = Fc;
+            fs = getSampleRate(obj);
+            [obj.b, obj.a] = highPassCoeffs(Fc, fs);
         end
         
         function y = process(obj, x)
@@ -110,10 +128,11 @@ classdef Delay2 < audioPlugin
             
             switch obj.Effect
                 case 'Reverse'
-                    [xd, obj.rBuffer] = reverse(xd, obj.rBuffer);
+                    [xd] = reverse(xd);
                 case 'Reverb'
                     [xd, obj.rBuffer] = reverb(xd, obj.rBuffer);
-                case 'Centroid' 
+                case 'HighPass Filter' 
+                    [xd,obj.z] = filter(obj.b, obj.a, xd, obj.z);
                 case 'Nothing'
             end
             
@@ -123,4 +142,14 @@ classdef Delay2 < audioPlugin
             y = (1-mix)*x + (mix)*(obj.Gain.*xd);
         end
     end
+end
+
+% Butterworth high pass filter coefficients
+function [b, a] = highPassCoeffs(Fc, Fs)
+  w0 = 2*pi*Fc/Fs;
+  alpha = sin(w0)/sqrt(2);
+  cosw0 = cos(w0);
+  norm = 1/(1+alpha);
+  b = (1 + cosw0)*norm * [.5  -1  .5];
+  a = [1  -2*cosw0*norm  (1 - alpha)*norm];
 end
