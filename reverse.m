@@ -1,3 +1,3 @@
 function out = reverse(x)
-    out = flip(x);
+    out = flipud(x);
 end
