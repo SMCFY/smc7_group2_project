@@ -1,15 +1,21 @@
 deviceReader = audioDeviceReader;
 %deviceReader = dsp.AudioFileReader('Dude.wav');
 deviceWriter = audioDeviceWriter('SampleRate',deviceReader.SampleRate);
-deviceReader.SamplesPerFrame = 1024;
+deviceReader.SamplesPerFrame = 64;
 
 fs = deviceReader.SampleRate;
 
-delay = Delay();
+soundcard = 0;
+if(soundcard)
+    d = deviceReader.getAudioDevices
+    deviceReader.Device = d{3}     % set soundcard as default 
+end
+
+delay = Delay2();
 disp('Begin Signal Input...')
 
 tic
-while toc<50
+while toc<25
    
     mySignal = deviceReader();
     myProcessedSignal = process(delay, mySignal);

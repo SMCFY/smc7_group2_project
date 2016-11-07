@@ -112,7 +112,7 @@ classdef Delay2 < audioPlugin
                 case 'Reverse'
                     [xd, obj.rBuffer] = reverse(xd, obj.rBuffer);
                 case 'Reverb'
-                    [xd, obj.rBuffer] = reverse(xd, obj.rBuffer);
+                    [xd, obj.rBuffer] = reverb(xd, obj.rBuffer);
                 case 'Centroid' 
                 case 'Nothing'
             end
