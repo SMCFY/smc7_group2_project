@@ -58,6 +58,9 @@ classdef Delay2 < audioPlugin
         %   in the range between 0 and 1. The default value of this
         %   property is 0.5.
         Gain = 0.5
+        % highpass filter
+        
+        %Q = 0.1;
     end
        
     properties (Dependent)
@@ -67,6 +70,7 @@ classdef Delay2 < audioPlugin
         %   turns off the feedback. The default value of this property is
         %   0.35.
         FeedbackLevel = 0.35
+        CutoffFrequency = 0
     end
         
     properties
@@ -92,7 +96,9 @@ classdef Delay2 < audioPlugin
             audioPluginParameter('Delay','DisplayName','Base delay','Label','s','Mapping',{'lin',0 5}),...
             audioPluginParameter('Gain','DisplayName','Gain','Label','','Mapping',{'lin',0 1}),...
             audioPluginParameter('FeedbackLevel','DisplayName','Feedback','Label','','Mapping',{'lin', 0 0.5}),...
-            audioPluginParameter('WetDryMix','DisplayName','Wet/dry mix','Label','','Mapping',{'lin',0 1}));
+            audioPluginParameter('WetDryMix','DisplayName','Wet/dry mix','Label','','Mapping',{'lin',0 1}),...
+            audioPluginParameter('CutoffFrequency','DisplayName','Filter Fc','Label','','Mapping',{'log',1 20000}),...
+            audioPluginParameter('Q','DisplayName','Filter Q','Label','','Mapping',{'log',0.1 200}));
     end
     
     properties (Access = private)        
@@ -102,6 +108,9 @@ classdef Delay2 < audioPlugin
         
         %pSR Sample rate
         pSR
+        
+        filter
+        
     end
     
     methods
@@ -111,6 +120,11 @@ classdef Delay2 < audioPlugin
                 'FeedbackLevel', 0.35, ...
                 'SampleRate', fs);
             obj.pSR = fs;
+            % filter
+            obj.filter = obj@audiopluginexample.private.SecondOrderIIRFilter;
+        end
+        function plugin = HighPassIIRFilter
+           plugin = 
         end
         
         function set.FeedbackLevel(obj, val)
@@ -119,7 +133,11 @@ classdef Delay2 < audioPlugin
         function val = get.FeedbackLevel(obj)
             val = obj.pFractionalDelay.FeedbackLevel;
         end
-        
+        % functions to be implemented
+        function grain = granular()
+        end
+        function out = reverse()
+        end
         function reset(obj)
             % Reset sample rate
             fs = getSampleRate(obj);
@@ -128,19 +146,25 @@ classdef Delay2 < audioPlugin
             % Reset delay
             obj.pFractionalDelay.SampleRate = fs;
             reset(obj.pFractionalDelay);
+            reset(obj.filter)
+        end
+        function set.CutoffFrequency(plugin,val)
+            plugin.f0 = val;            
         end
         
+        function val = get.CutoffFrequency(plugin)
+            val = plugin.f0;            
+        end
         function y = process(obj, x)
             delayInSamples = obj.Delay*obj.pSR;
             
             % Delay the input
             xd = obj.pFractionalDelay(delayInSamples, x);
-            l = length(xd)
-            rev = [xd(l:1,1) xd(l:1,2)]
+            
             % Calculate output by adding wet and dry signal in appropriate
             % ratio
             mix = obj.WetDryMix;
-            y = (1-mix)*x + (mix)*(obj.Gain.*rev);
+            y = (1-mix)*x + (mix)*(obj.Gain.*xd);
         end
 
     end

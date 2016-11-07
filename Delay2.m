@@ -58,6 +58,7 @@ classdef Delay2 < audioPlugin
         %   in the range between 0 and 1. The default value of this
         %   property is 0.5.
         Gain = 0.5
+      
     end
        
     properties (Dependent)
@@ -67,6 +68,7 @@ classdef Delay2 < audioPlugin
         %   turns off the feedback. The default value of this property is
         %   0.35.
         FeedbackLevel = 0.35
+      
     end
         
     properties
@@ -102,9 +104,13 @@ classdef Delay2 < audioPlugin
         
         %pSR Sample rate
         pSR
+        
+        filter
+        
     end
     
     methods
+      
         function obj = Delay2()
             fs = getSampleRate(obj);
             obj.pFractionalDelay = audioexample.DelayFilter( ...
@@ -119,7 +125,11 @@ classdef Delay2 < audioPlugin
         function val = get.FeedbackLevel(obj)
             val = obj.pFractionalDelay.FeedbackLevel;
         end
-        
+        % functions to be implemented
+%         function grain = granular()
+%         end
+%         function out = reverse()
+%         end
         function reset(obj)
             % Reset sample rate
             fs = getSampleRate(obj);
@@ -141,6 +151,5 @@ classdef Delay2 < audioPlugin
             mix = obj.WetDryMix;
             y = (1-mix)*x + (mix)*(obj.Gain.*xd);
         end
-
     end
 end
