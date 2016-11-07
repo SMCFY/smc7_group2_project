@@ -52,7 +52,7 @@ classdef Delay2 < audioPlugin
             audioPluginParameter('WetDryMix','DisplayName','Wet/dry mix','Label','','Mapping',{'lin',0 1}),...
             audioPluginParameter('Effect',...
                 'DisplayName','Effect',...
-                'Mapping',{'enum','Nothing','Reverse', 'Reverb'}));
+                'Mapping',{'enum','Nothing','Reverse', 'Reverb','Centroid'}));
     end
     
     properties (Access = private)        
@@ -111,6 +111,7 @@ classdef Delay2 < audioPlugin
                     xd = reverse(xd);
                 case 'Reverb'
                     x = reverb(x);
+                case 'Centroid' 
                 case 'Nothing'
             end
             

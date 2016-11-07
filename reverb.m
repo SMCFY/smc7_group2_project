@@ -11,7 +11,7 @@ function out = reverb(x)
             
             Mall = 531;
 
-            s = allpassFilter(s,g, Mall);
+            s = allpassFilter(x,g, Mall);
            
             out = x*0.5 + s*0.5;
         end
