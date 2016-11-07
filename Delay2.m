@@ -1,50 +1,4 @@
 classdef Delay2 < audioPlugin
-%Echo Add echo effect to an audio signal.
-%
-%   ECHO = audiopluginexample.Echo() returns an object ECHO with properties
-%   set to their default values.
-%
-%   Echo methods:
-%
-%   Y = process(ECHO, X) adds echo effect to the audio input X based on the
-%   properties specified in the object ECHO and returns it as output Y.
-%   Each column of X is treated as individual input channels.
-%
-%   Echo properties:
-%
-%   Delay         - Base delay in seconds
-%   Gain          - Amplitude gain 
-%   FeedbackLevel - Feedback gain 
-%   WetDryMix     - Wet to dry signal ratio
-%
-%   % Example 1: Simulate Echo in MATLAB.
-%   reader = dsp.AudioFileReader('SamplesPerFrame', 1024,...
-%     'PlayCount', 1);
-%
-%   player = audioDeviceWriter('SampleRate', reader.SampleRate);
-%
-%   echo = audiopluginexample.Echo;
-%
-%   while ~isDone(reader)
-%       x = reader();
-%       y = process(echo, x);
-%       player(y);
-%   end
-%   release(reader)
-%   release(player)
-%
-%   % Example 2: Validate and generate a VST plugin
-%   validateAudioPlugin audiopluginexample.Echo
-%   generateAudioPlugin audiopluginexample.Echo
-%
-%   % Example 3: Launch a test bench for the echo object
-%   echo = audiopluginexample.Echo;
-%   audioTestBench(echo);
-%
-%   See also: audiopluginexample.Chorus, audiopluginexample.Flanger
-
-%   Copyright 2015-2016 The MathWorks, Inc.
-%#codegen
     
     properties
         %Delay Base delay (s)
@@ -58,7 +12,8 @@ classdef Delay2 < audioPlugin
         %   in the range between 0 and 1. The default value of this
         %   property is 0.5.
         Gain = 0.5
-      
+        
+        Effect = 'Nothing'
     end
        
     properties (Dependent)
@@ -91,10 +46,13 @@ classdef Delay2 < audioPlugin
             'VendorName', '', ...
             'VendorVersion', '3.1.4', ...
             'UniqueId', '4pvz',...
-            audioPluginParameter('Delay','DisplayName','Base delay','Label','s','Mapping',{'lin',0 5}),...
+            audioPluginParameter('Delay','DisplayName','Base delay','Label','s','Mapping',{'lin',0 1}),...
             audioPluginParameter('Gain','DisplayName','Gain','Label','','Mapping',{'lin',0 1}),...
-            audioPluginParameter('FeedbackLevel','DisplayName','Feedback','Label','','Mapping',{'lin', 0 0.5}),...
-            audioPluginParameter('WetDryMix','DisplayName','Wet/dry mix','Label','','Mapping',{'lin',0 1}));
+            audioPluginParameter('FeedbackLevel','DisplayName','Feedback','Label','','Mapping',{'lin', 0 0.9}),...
+            audioPluginParameter('WetDryMix','DisplayName','Wet/dry mix','Label','','Mapping',{'lin',0 1}),...
+            audioPluginParameter('Effect',...
+                'DisplayName','Effect',...
+                'Mapping',{'enum','Nothing','Reverse', 'Reverb'}));
     end
     
     properties (Access = private)        
@@ -105,7 +63,6 @@ classdef Delay2 < audioPlugin
         %pSR Sample rate
         pSR
         
-        filter
         
     end
     
@@ -118,6 +75,9 @@ classdef Delay2 < audioPlugin
                 'SampleRate', fs);
             obj.pSR = fs;
         end
+        function set.Effect(plugin, effect)
+            plugin.Effect = effect;
+        end
         
         function set.FeedbackLevel(obj, val)
             obj.pFractionalDelay.FeedbackLevel = val;
@@ -128,8 +88,8 @@ classdef Delay2 < audioPlugin
         % functions to be implemented
 %         function grain = granular()
 %         end
-%         function out = reverse()
-%         end
+
+        
         function reset(obj)
             % Reset sample rate
             fs = getSampleRate(obj);
@@ -145,6 +105,14 @@ classdef Delay2 < audioPlugin
             
             % Delay the input
             xd = obj.pFractionalDelay(delayInSamples, x);
+            
+            switch obj.Effect
+                case 'Reverse'
+                    xd = reverse(xd);
+                case 'Reverb'
+                    x = reverb(x);
+                case 'Nothing'
+            end
             
             % Calculate output by adding wet and dry signal in appropriate
             % ratio
