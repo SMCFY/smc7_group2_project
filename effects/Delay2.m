@@ -66,7 +66,7 @@ classdef Delay2 < audioPlugin
         %pSR Sample rate
         pSR
         
-        rBuffer
+        rBuffer % filter state
         
         % internal state
         z = zeros(2)
@@ -130,7 +130,7 @@ classdef Delay2 < audioPlugin
                 case 'Reverse'
                     [xd] = reverse(xd);
                 case 'Reverb'
-                    [xd, obj.rBuffer] = reverb(xd, obj.rBuffer);
+                    [x, obj.rBuffer] = reverb(x, obj.rBuffer);
                 case 'HighPass Filter' 
                     [xd,obj.z] = filter(obj.b, obj.a, xd, obj.z);
                 case 'Nothing'
