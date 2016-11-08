@@ -12,8 +12,8 @@ function bang = onsetD(buff, L, thresh)
         bang = 0;
         
     for i=1:length(buff)/L
-        
-        onsetSeg = buff(L*(i-1)+1:L*i);
+        idx = L*(i-1)+1:L*i;
+        onsetSeg = buff(idx);
         slope = (onsetSeg(L,1)-onsetSeg(1,1))/L;
      
          if slope > thresh
@@ -22,9 +22,6 @@ function bang = onsetD(buff, L, thresh)
          else
              bang = 0;
          end
-
     end
-
-    
 end
 
