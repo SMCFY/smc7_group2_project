@@ -4,7 +4,7 @@ deviceWriter = audioDeviceWriter('SampleRate',deviceReader.SampleRate);
 deviceReader.SamplesPerFrame = 64;
 
 fs = deviceReader.SampleRate;
-% setup for soundcard, soundcard = 1, if a soundcard is attached
+% setup for soundcard, soundcard = 1, if a soundcard is attached.
 soundcard = 0;
 if(soundcard)
     d = deviceReader.getAudioDevices
