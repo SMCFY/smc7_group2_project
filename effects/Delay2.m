@@ -12,7 +12,7 @@ classdef Delay2 < audioPlugin
         %   in the range between 0 and 1. The default value of this
         %   property is 0.5.
         Gain = 0.5
-        
+        % start position of switch. Can we toggled on in audioTestBench
         Effect = 'Nothing'
         
         Fc = 20
@@ -54,7 +54,7 @@ classdef Delay2 < audioPlugin
             audioPluginParameter('WetDryMix','DisplayName','Wet/dry mix','Label','','Mapping',{'lin',0 1}),...
             audioPluginParameter('Effect',...
                 'DisplayName','Effect',...
-                'Mapping',{'enum','Nothing','Reverse', 'Reverb','HighPass Filter'}),...
+                'Mapping',{'enum','Nothing','Reverse', 'Reverb','HighPass Filter', 'LowPass Filter'}),... % switch enumerator with different states
              audioPluginParameter('Fc','DisplayName','Fc','Label','Hz','Mapping',{'log',20 20000}));
     end
     
@@ -66,24 +66,25 @@ classdef Delay2 < audioPlugin
         %pSR Sample rate
         pSR
         
-        rBuffer % filter state
+        rBuffer
         
-        % internal state
+        % internal state used by LP and HP filter, all zeros the initial
+        % state
         z = zeros(2)
         b = zeros(1,3)
         a = zeros(1,3)
     end
     
     methods
-      
         function obj = Delay2()
             fs = getSampleRate(obj);
             obj.pFractionalDelay = audioexample.DelayFilter( ...
                 'FeedbackLevel', 0.35, ...
                 'SampleRate', fs);
             obj.pSR = fs;
-            obj.rBuffer = [];
+            obj.rBuffer = []; % filter buffer
         end
+        % set.Effect is called every time a new effect is selected 
         function set.Effect(plugin, effect)
             plugin.Effect = effect;
         end
@@ -109,7 +110,7 @@ classdef Delay2 < audioPlugin
             obj.rBuffer = [];
             reset(obj.pFractionalDelay);
             
-            % initialize internal state
+            % initialize internal filter state
             obj.z = zeros(2);
           
             [obj.b, obj.a] = highPassCoeffs(obj.Fc, fs);
@@ -117,7 +118,13 @@ classdef Delay2 < audioPlugin
         function set.Fc(obj, Fc)
             obj.Fc = Fc;
             fs = getSampleRate(obj);
-            [obj.b, obj.a] = highPassCoeffs(Fc, fs);
+            % Switch to decide which filter to use
+            switch obj.Effect
+                case 'HighPass Filter' 
+                    [obj.b, obj.a] = highPassCoeffs(Fc, fs);
+                case 'LowPass Filter'
+                    [obj.b, obj.a] = lowPassCoeffs(Fc, fs);
+            end
         end
         
         function y = process(obj, x)
@@ -126,12 +133,15 @@ classdef Delay2 < audioPlugin
             % Delay the input
             xd = obj.pFractionalDelay(delayInSamples, x);
             
+            % Switch to toggle on effects/filter on dry or wet signal  
             switch obj.Effect
                 case 'Reverse'
                     [xd] = reverse(xd);
                 case 'Reverb'
-                    [x, obj.rBuffer] = reverb(x, obj.rBuffer);
+                    [xd, obj.rBuffer] = reverb(xd, obj.rBuffer);
                 case 'HighPass Filter' 
+                    [xd,obj.z] = filter(obj.b, obj.a, xd, obj.z);
+                case 'LowPass Filter'
                     [xd,obj.z] = filter(obj.b, obj.a, xd, obj.z);
                 case 'Nothing'
             end
@@ -143,7 +153,7 @@ classdef Delay2 < audioPlugin
         end
     end
 end
-
+% Filter calculations from RT audio white paper
 % Butterworth high pass filter coefficients
 function [b, a] = highPassCoeffs(Fc, Fs)
   w0 = 2*pi*Fc/Fs;
@@ -152,4 +162,17 @@ function [b, a] = highPassCoeffs(Fc, Fs)
   norm = 1/(1+alpha);
   b = (1 + cosw0)*norm * [.5  -1  .5];
   a = [1  -2*cosw0*norm  (1 - alpha)*norm];
+end
+
+% Butterworth low pass filter coefficients
+function [b, a] = lowPassCoeffs(Fc, Fs)
+  w0 = 2*pi*Fc/Fs;
+  alpha = sin(w0)/sqrt(2);
+  cosw0 = cos(w0);
+  norm = 1/(1+alpha);
+  % calculate b & a coeff, still needs some tweaking
+  b0 = (1 - cos(w0))/2; b1 = 1 - cos(w0); b2 = (1 - cos(w0))/2;
+  b = [b0 b1 b2]; %(1 - cosw0)/2*norm * [.5  -1  .5];
+  a0 =   1 + alpha; a1 =  -2*cos(w0); a2 =   1 - alpha;
+  a = [a0 a1 a2]; %[1  -2*cosw0*norm  (1 - alpha)*norm];
 end
