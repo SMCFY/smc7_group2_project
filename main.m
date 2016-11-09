@@ -8,46 +8,31 @@ fs = deviceReader.SampleRate;
 delay = Delay();
 disp('Begin Signal Input...')
 
+% initialize the centroid and delta with 'bogus' values
 C_new = -1;
+C_old = -1;
+% delta is the amount the delay changes with 
+% each new calculated centroid value
+delta = -1; 
+% initialize a counter for the intperpolator
 count = 0;
-tic
+% store all consecutive delay values (used for testing)
 dtime = [];
+
+tic
 while toc<50
    
     mySignal = deviceReader();
     myProcessedSignal = process(delay, mySignal);
     deviceWriter(myProcessedSignal);
     
-    % calculate the old and new centroid value
-    C_old = C_new;
-    C_new = centroid(mySignal');
-    if (C_old == -1)
-      % C_old and C_new are the same the first time through
-      C_old = C_new;
-    end
+    % Adaptive part with some mapping 
+    % use the interpolator to smooth out centroid-to-delay mapping
+    [delay.DelayTime count C_old C_new delta] = interpolator(delay.DelayTime,mySignal, C_old,C_new, count, delta);
 
-    % calculate a new interpolator value every 5 buffer lengths
-    if (mod(count,5)==0)
-      delta = interpolator(C_old,C_new);
-    end
-
-    % set a min and max threshold value for delay
-    delayTime = delay.DelayTime + delta;
-    if (delayTime < 0)
-      delayTime = 0;
-    elseif (delayTime > 1)
-      delayTime = 1;
-    end
-
-    delay.DelayTime = delayTime; % Adaptive part with some mapping 
+    % keeping track of all the calculated delay values (for testing purposes)
     dtime = [dtime delay.DelayTime];
 
-
-    count = count + 1;
-    if (count > 10000) % avoid overflow
-      count = 0;
-    end
-    
     %disp(C);
     
 end
