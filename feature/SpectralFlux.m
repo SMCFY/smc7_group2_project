@@ -18,9 +18,11 @@ for (i=1:numOfFrames)
     FFT = FFT / max(FFT); % normalization
     if (i>1)
         F(i) = sum((FFT-FFTprev).^2); % spectral difference (NOTE! x^2)
-%       if F(i) < 0
-%           F(i) = 0
-%       end
+      if F(i) < 0
+          F(i) = 0;
+      else
+        F(i) = F(i)^2;
+      end
     else
         F(i) = 0; % the first value of the SF vector
     end
