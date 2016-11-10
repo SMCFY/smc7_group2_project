@@ -3,19 +3,27 @@ deviceReader = audioDeviceReader;
 deviceWriter = audioDeviceWriter('SampleRate',deviceReader.SampleRate);
 deviceReader.SamplesPerFrame = 1024;
 
-fs = deviceReader.SampleRate;
-
-delay = Delay();
+delay = Delay2();
 disp('Begin Signal Input...')
 
+XmagPrev = 0;
+threshold = 50;
+bufferSize = deviceReader.SamplesPerFrame;
+fs = deviceReader.SampleRate;
+
 tic
-while toc<50
+while toc<30
    
     mySignal = deviceReader();
     myProcessedSignal = process(delay, mySignal);
     deviceWriter(myProcessedSignal);
     
-    onsetD(mySignal,32,T);
+    [onset, XmagPrev] = detectOnset(mySignal, threshold, XmagPrev);
+    if onset == 1
+    	disp('ONSET');
+    end
+    
+    disp(estimateTempo(10, fs, bufferSize, mySignal, threshold, XmagPrev));
     
     %C = centroid(mySignal');
     %delay.DelayTime = C/100; % Adaptive part with some mapping 
