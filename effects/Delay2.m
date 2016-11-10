@@ -1,5 +1,16 @@
 classdef Delay2 < audioPlugin
-    
+% DELAY2  
+%           The effect delays the input signal from 0 - 1 second. 
+%           Works in real-time and can generate an audio-plugin
+%           by using built-in functions from audio system toolbox
+% Input
+%           Delay: returns the delaytime in seconds
+%           Gain: Amplitude of the delayed signal, 0-1 
+%           Feedback: how much of the delayed signal is feeded back into the
+%           effect. This should not be over 0.9 due to stability.
+%           Wet/Dry: How much of the original signal (dry ) and
+%           delayed signal (wet) is present in the out. Can mixed between 0-1.
+%           At 0 only the dry signal is present, at 1 the output is completely wet.
     properties
         %Delay Base delay (s)
         %   Specify the base delay for echo effect as positive scalar
@@ -86,7 +97,7 @@ classdef Delay2 < audioPlugin
         end
         % set.Effect is called every time a new effect is selected 
         function set.Effect(obj, effect)
-            obj.Effect = effect;
+             obj.Effect = effect;
         end
         function effect = get.Effect(obj)
             effect = obj.Effect;
