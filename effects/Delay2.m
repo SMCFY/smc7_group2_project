@@ -27,6 +27,7 @@ classdef Delay2 < audioPlugin
         Effect = 'Nothing'
         
         Fc = 20
+        Q = sqrt(2)/2
     end
        
     properties (Dependent)
@@ -65,8 +66,11 @@ classdef Delay2 < audioPlugin
             audioPluginParameter('WetDryMix','DisplayName','Wet/dry mix','Label','','Mapping',{'lin',0 1}),...
             audioPluginParameter('Effect',...
                 'DisplayName','Effect',...
-                'Mapping',{'enum','Nothing','Reverse', 'Reverb','HighPass', 'LowPass'}),... % switch enumerator with different states
-             audioPluginParameter('Fc','DisplayName','Fc','Label','Hz','Mapping',{'log',20 20000}));
+                'Mapping',{'enum','Nothing','Reverse', 'Reverb','HighPass Filter', 'LowPass Filter'}),... % switch enumerator with different states
+             audioPluginParameter('Fc','DisplayName','Fc','Label','Hz','Mapping',{'log',20 20000}),...
+             audioPluginParameter('Q', ...
+            'DisplayName',  'Q', ...            
+            'Mapping', { 'log', 0.1, 200}));
     end
     
     properties (Access = private)        
@@ -125,8 +129,8 @@ classdef Delay2 < audioPlugin
             
             % initialize internal filter state
             obj.z = zeros(2);
-          
-            [obj.b, obj.a] = highPassCoeffs(obj.Fc, fs);
+            obj.Q = sqrt(2)/2;
+            [obj.b, obj.a] = highPassCoeffs(obj.Fc, obj.Q, fs);
         end
         function set.Fc(obj, Fc)
             obj.Fc = Fc;
@@ -134,9 +138,19 @@ classdef Delay2 < audioPlugin
             % Switch to decide which filter to use
             switch obj.Effect
                 case 'HighPass Filter' 
-                    [obj.b, obj.a] = highPassCoeffs(Fc, fs);
+                    [obj.b, obj.a] = highPassCoeffs(Fc, obj.Q, fs);
                 case 'LowPass Filter'
-                    [obj.b, obj.a] = lowPassCoeffs(Fc, fs);
+                    [obj.b, obj.a] = lowPassCoeffs(Fc, obj.Q, fs);
+            end
+        end
+        function set.Q(obj,Q)
+            obj.Q = Q;
+            fs = getSampleRate(obj);
+            switch obj.Effect
+                case 'HighPass Filter' 
+                    [obj.b, obj.a] = highPassCoeffs(obj.Fc, obj.Q, fs);
+                case 'LowPass Filter'
+                    [obj.b, obj.a] = lowPassCoeffs(obj.Fc, obj.Q, fs);
             end
         end
         
@@ -168,9 +182,9 @@ classdef Delay2 < audioPlugin
 end
 % Filter calculations from RT audio white paper
 % Butterworth high pass filter coefficients
-function [b, a] = highPassCoeffs(Fc, Fs)
+function [b, a] = highPassCoeffs(Fc, Q, Fs)
   w0 = 2*pi*Fc/Fs;
-  alpha = sin(w0)/sqrt(2);
+  alpha = sin(w0)/sqrt(2 * Q);
   cosw0 = cos(w0);
   norm = 1/(1+alpha);
   b = (1 + cosw0)*norm * [.5  -1  .5];
@@ -178,14 +192,14 @@ function [b, a] = highPassCoeffs(Fc, Fs)
 end
 
 % Butterworth low pass filter coefficients
-function [b, a] = lowPassCoeffs(Fc, Fs)
+function [b, a] = lowPassCoeffs(Fc,Q, Fs)
   w0 = 2*pi*Fc/Fs;
-  alpha = sin(w0)/sqrt(2);
+  alpha = sin(w0)/sqrt(2 * Q);
   cosw0 = cos(w0);
   norm = 1/(1+alpha);
   % calculate b & a coeff, still needs some tweaking
-  b0 = (1 - cos(w0))/2; b1 = 1 - cos(w0); b2 = (1 - cos(w0))/2;
-  b = [b0 b1 b2]; %(1 - cosw0)/2*norm * [.5  -1  .5];
-  a0 =   1 + alpha; a1 =  -2*cos(w0); a2 =   1 - alpha;
-  a = [a0 a1 a2]; %[1  -2*cosw0*norm  (1 - alpha)*norm];
+  %b0 = (1 - cos(w0))/2; b1 = 1 - cos(w0); b2 = (1 - cos(w0))/2;
+  b = alpha*norm * [1 0 -1];
+  %a0 =   1 + alpha; a1 =  -2*cos(w0); a2 =   1 - alpha;
+  a = [1 -2*cosw0*norm  (1 - alpha)*norm];
 end
