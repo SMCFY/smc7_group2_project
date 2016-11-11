@@ -23,7 +23,7 @@ while toc<30
     	disp('ONSET');
     end
     
-    disp(estimateTempo(10, fs, bufferSize, mySignal, threshold, XmagPrev));
+    %disp(estimateTempo(10, fs, bufferSize, mySignal, threshold, XmagPrev));
     
     %C = centroid(mySignal');
     %delay.DelayTime = C/100; % Adaptive part with some mapping 
