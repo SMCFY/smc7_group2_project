@@ -17,8 +17,8 @@ while toc<50
     
     C = centroid(mySignal');
     delay.DelayTime = C/100; % Adaptive part with some mapping 
-    
-    %disp(C);
+    E = sum(energyLevel(mySignal',1));
+    disp(E);
     
 end
 
