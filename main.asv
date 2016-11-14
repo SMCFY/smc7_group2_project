@@ -8,6 +8,7 @@ fs = deviceReader.SampleRate;
 delay = Delay();
 disp('Begin Signal Input...')
 
+<<<<<<< HEAD
 % initialize the centroid and delta with 'bogus' values
 C_new = -1;
 C_old = -1;
@@ -19,6 +20,8 @@ count = 0;
 % store all consecutive delay values (used for testing)
 dtime = [];
 
+=======
+>>>>>>> energy
 tic
 while toc<50
    
@@ -26,6 +29,7 @@ while toc<50
     myProcessedSignal = process(delay, mySignal);
     deviceWriter(myProcessedSignal);
     
+<<<<<<< HEAD
     % Adaptive part with some mapping 
     % use the interpolator to smooth out centroid-to-delay mapping
     [delay.DelayTime count C_old C_new delta] = interpolator(delay.DelayTime,mySignal, C_old,C_new, count, delta);
@@ -36,6 +40,13 @@ while toc<50
     
     
     %disp(C);
+=======
+    C = centroid(mySignal');
+    delay.DelayTime = C/100; % Adaptive part with some mapping 
+    E = sum(energyLevel(mySignal',1));
+    E = f_energy(energ
+    disp(E);
+>>>>>>> energy
     
 end
 
