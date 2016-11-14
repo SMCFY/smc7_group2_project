@@ -33,7 +33,8 @@ while toc<50
     % keeping track of all the calculated delay values (for testing purposes)
     dtime = [dtime delay.DelayTime];
     
-    %disp(C);
+    E = sum(energyLevel(mySignal',1));
+    disp(E);
     
 end
 
