@@ -163,9 +163,9 @@ classdef Delay2 < audioPlugin
             % Switch to toggle on effects/filter on dry or wet signal  
             switch obj.Effect
                 case 'Reverse'
-                    [xd] = reverse(xd);
+                    %[xd] = reverse(xd);
                 case 'Reverb'
-                    [x, obj.rBuffer] = reverb(x, obj.rBuffer);
+                    %[x, obj.rBuffer] = reverb(x, obj.rBuffer);
                 case 'HighPass Filter' 
                     [xd,obj.z] = filter(obj.b, obj.a, xd, obj.z);
                 case 'LowPass Filter'
@@ -181,7 +181,7 @@ classdef Delay2 < audioPlugin
     end
 end
 % Filter calculations from RT audio white paper
-% Butterworth high pass filter coefficients
+% Butterworth two pole high pass filter coefficients
 function [b, a] = highPassCoeffs(Fc, Q, Fs)
   w0 = 2*pi*Fc/Fs;
   alpha = sin(w0)/sqrt(2 * Q);
@@ -199,7 +199,7 @@ function [b, a] = lowPassCoeffs(Fc,Q, Fs)
   norm = 1/(1+alpha);
   % calculate b & a coeff, still needs some tweaking
   %b0 = (1 - cos(w0))/2; b1 = 1 - cos(w0); b2 = (1 - cos(w0))/2;
-  b = alpha*norm * [1 0 -1];
+  b = (1 - cosw0)*norm * [.5 1 .5]; %alpha*norm * [1 0 -1];
   %a0 =   1 + alpha; a1 =  -2*cos(w0); a2 =   1 - alpha;
   a = [1 -2*cosw0*norm  (1 - alpha)*norm];
 end
