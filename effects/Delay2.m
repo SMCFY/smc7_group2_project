@@ -34,8 +34,13 @@ classdef Delay2 < audioPlugin
         % start position of switch. Can we toggled on in audioTestBench
         Effect = 'Nothing'
         
+        % Filter variables
         Fc = 20
         Q = sqrt(2)/2
+        
+        % Saturation
+        Amount = 1
+        
     end
        
     properties (Dependent)
@@ -74,11 +79,14 @@ classdef Delay2 < audioPlugin
             audioPluginParameter('WetDryMix','DisplayName','Wet/dry mix','Label','','Mapping',{'lin',0 1}),...
             audioPluginParameter('Effect',...
                 'DisplayName','Effect',...
-                'Mapping',{'enum','Nothing','Reverse', 'Reverb','HighPass Filter', 'LowPass Filter'}),... % switch enumerator with different states
+                'Mapping',{'enum','Nothing','Reverse', 'Reverb','HighPass Filter', 'LowPass Filter','Saturation'}),... % switch enumerator with different states
              audioPluginParameter('Fc','DisplayName','Fc','Label','Hz','Mapping',{'log',20 20000}),...
              audioPluginParameter('Q', ...
             'DisplayName',  'Q', ...            
-            'Mapping', { 'log', 0.1, 200}));
+            'Mapping', { 'log', 0.1, 200}),...
+             audioPluginParameter('Amount', ...
+            'DisplayName',  'Saturation Amount', ...            
+            'Mapping', { 'lin', 1, 60}));
     end
     
     properties (Access = private)        
@@ -162,6 +170,10 @@ classdef Delay2 < audioPlugin
             end
         end
         
+        function set.Amount(obj,Amount)
+            obj.Amount = Amount;
+        end
+        
         function y = process(obj, x)
             delayInSamples = obj.Delay*obj.pSR;
             
@@ -178,6 +190,8 @@ classdef Delay2 < audioPlugin
                     [xd,obj.z] = filter(obj.b, obj.a, xd, obj.z);
                 case 'LowPass Filter'
                     [xd,obj.z] = filter(obj.b, obj.a, xd, obj.z);
+                case 'Saturation'
+                    xd = sat(xd, obj.Amount);
                 case 'Nothing'
             end
             
