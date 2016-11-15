@@ -79,7 +79,7 @@ classdef Delay2 < audioPlugin
             audioPluginParameter('WetDryMix','DisplayName','Wet/dry mix','Label','','Mapping',{'lin',0 1}),...
             audioPluginParameter('Effect',...
                 'DisplayName','Effect',...
-                'Mapping',{'enum','Nothing','Reverse', 'Reverb','HighPass Filter', 'LowPass Filter','Saturation'}),... % switch enumerator with different states
+                'Mapping',{'enum','Nothing','Vibrato', 'Reverb','HighPass Filter', 'LowPass Filter','Saturation'}),... % switch enumerator with different states
              audioPluginParameter('Fc','DisplayName','Fc','Label','Hz','Mapping',{'log',20 20000}),...
              audioPluginParameter('Q', ...
             'DisplayName',  'Q', ...            
@@ -182,8 +182,8 @@ classdef Delay2 < audioPlugin
             
             % Switch to toggle on effects/filter on dry or wet signal  
             switch obj.Effect
-                case 'Reverse'
-                    %[xd] = reverse(xd);
+                case 'Vibrato'
+                     xd = vibrato(xd, obj.pSR, 4, 0.0005); 
                 case 'Reverb'
                     %[x, obj.rBuffer] = reverb(x, obj.rBuffer);
                 case 'HighPass Filter' 
