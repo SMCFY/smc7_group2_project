@@ -1,6 +1,7 @@
 % Vibrato 
 % taken from this website http://users.cs.cf.ac.uk/Dave.Marshall/CM0268/PDF/10_CM0268_Audio_FX.pdf
 function y=vibrato(x,SAMPLERATE,Modfreq,Width)
+% Modfreq in Khz, Width = 0.0008; % 0.8 Milliseconds
 ya_alt=0;
 Delay=Width; % basic delay of input sample in sec
 DELAY=round(Delay*SAMPLERATE); % basic delay in # samples
@@ -26,6 +27,6 @@ for n=1:(LEN-1)
    y(n,1)=Delayline(i+1)*frac+Delayline(i)*(1-frac); 
    y(n,2)=Delayline(i+1)*frac+Delayline(i)*(1-frac); 
    %---Allpass Interpolation------------------------------
-   %y(n,1)=(Delayline(i+1)+(1-frac)*Delayline(i)-(1-frac)*ya_alt);  
-   %ya_alt=ya(n,1);
+  % ya(n,1)=(Delayline(i+1)+(1-frac)*Delayline(i)-(1-frac)*ya_alt);  
+  % ya_alt=ya(n,1);
 end 
