@@ -7,12 +7,14 @@ delay = Delay2();
 disp('Begin Signal Input...')
 
 XmagPrev = 0;
-threshold = 12;
+threshold = 40;
 runTime = 5; % run time in seconds
 bufferSize = deviceReader.SamplesPerFrame;
 fs = deviceReader.SampleRate;
 onsetBuffer = zeros(runTime*fs,1);
 count = 0;
+noveltyC = [];
+onsetV = [];
 tic
 while toc<runTime
    
@@ -20,19 +22,16 @@ while toc<runTime
     %myProcessedSignal = process(delay, mySignal);
    % deviceWriter(myProcessedSignal);
     
-    [onset, XmagPrev] = detectOnset(mySignal, threshold, XmagPrev);
+    [SF, onset, XmagPrev] = detectOnset(mySignal, threshold, XmagPrev);
     if onset == 1
     	disp('ONSET');
         onsetBuffer(count*bufferSize,1) = 1;
         
     end
     count = count + 1;
-    %disp(estimateTempo(10, fs, bufferSize, mySignal, threshold, XmagPrev));
     
-    %C = centroid(mySignal');
-    %delay.DelayTime = C/100; % Adaptive part with some mapping 
-    
-    %disp(C);
+    noveltyC = [noveltyC , SF];
+    onsetV = [onsetV, onset];
     
 end
 %amountOfOnsets = sum(onsetBuffer);
@@ -42,6 +41,9 @@ disp(t)
 %runTime = (count*bufferSize)/fs
 t = sprintf('run time in seconds: %1f', (count*bufferSize)/fs);
 disp(t)
+
+plot(noveltyC); hold on;
+plot(onsetV*max(noveltyC));
 
 release(deviceReader)
 release(deviceWriter)
