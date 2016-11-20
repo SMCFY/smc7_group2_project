@@ -20,7 +20,7 @@ Xmag = Xmag / max(Xmag); % normalization of the spectrum
 
 if (XmagPrev>0)
     
-    specDiff = (Xmag-XmagPrev + abs(Xmag-XmagPrev))/2; % rectified spectral difference
+    specDiff = ((Xmag-XmagPrev + abs(Xmag-XmagPrev))/2).^2; % energy of rectified spectral difference
     SF = sum(specDiff); % spectral flux
     SF = SF^10; % accentuation
 

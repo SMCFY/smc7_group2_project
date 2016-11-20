@@ -19,7 +19,7 @@ onsetV = [];
 % ------------------------------
 
 tic
-while toc<runTime
+while toc<5
    
     mySignal = deviceReader();
     %myProcessedSignal = process(delay, mySignal);
