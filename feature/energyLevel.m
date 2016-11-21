@@ -1,5 +1,5 @@
 function E = energyLevel(x,A)
-%THIS IS A TEST HEH 
+
 %code based on work by
 %   Author: Nabin Sharma
 %   Date: 2009/03/15
