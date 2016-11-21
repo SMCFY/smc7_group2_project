@@ -12,12 +12,24 @@ classdef Delay2 < audioPlugin
 %           delayed signal (wet) is present in the out. Can mixed between 0-1.
 %           At 0 only the dry signal is present, at 1 the output is completely wet.
 % Effects
+
+%           Vibrato:
+%           Adds vibrato to the delayed signal. Can be controlled through 
+%           'Vibrate Rate' and 'Vibrato Depth'
+%           
+%           Reverse:
+%           Reverses the delayed signal. 
+%           
+%           Saturation: 
+%           Distorts the delayed signal. The amount of distortion can be
+%           controlled with 'Saturation Amount'
+%          
 %           HighPass and LowPass Filter:
 %           You can add a highpass or a lowpass filter to the delayed
 %           signal. The cutoff frequency can be controlled with the parameter Fc, and the
 %           quality of the filter can be controlled with Q. 
 %           
-%           Effects to implemented: Reverb?, reverse delay, grainular
+%           Effects to implemented: Reverb?, grainular
 %           delay.
     properties
         %Delay Base delay (s)
@@ -76,13 +88,13 @@ classdef Delay2 < audioPlugin
             'VendorName', '', ...
             'VendorVersion', '3.1.4', ...
             'UniqueId', '4pvz',...
-            audioPluginParameter('Delay','DisplayName','Base delay','Label','s','Mapping',{'lin',0 2}),...
+            audioPluginParameter('Delay','DisplayName','Base delay','Label','s','Mapping',{'lin',0.1 2}),...
             audioPluginParameter('Gain','DisplayName','Gain','Label','','Mapping',{'lin',0 1}),...
             audioPluginParameter('FeedbackLevel','DisplayName','Feedback','Label','','Mapping',{'lin', 0 0.9}),...
             audioPluginParameter('WetDryMix','DisplayName','Wet/dry mix','Label','','Mapping',{'lin',0 1}),...
             audioPluginParameter('Effect',...
                 'DisplayName','Effect',...
-                'Mapping',{'enum','Nothing','Vibrato', 'Reverb','Saturation'}),... % switch enumerator with different states
+                'Mapping',{'enum','Nothing','Vibrato', 'Reverse','Saturation'}),... % switch enumerator with different states
              audioPluginParameter('Filter',...
                 'DisplayName','Filter',...
                 'Mapping',{'enum','Nothing','HighPass', 'LowPass'}),...
@@ -92,13 +104,13 @@ classdef Delay2 < audioPlugin
             'Mapping', { 'log', 0.1, 200}),...
              audioPluginParameter('Amount', ...
             'DisplayName',  'Saturation Amount', ...            
-            'Mapping', { 'lin', 1, 60}),...
+            'Mapping', { 'lin', 1, 10}),...
             audioPluginParameter('Width', ...
             'DisplayName',  'Vibrato Depth', ...            
-            'Mapping', { 'lin', 1, 15}),...
+            'Mapping', { 'lin', 1, 10}),...
             audioPluginParameter('Rate', ...
             'DisplayName',  'Vibrato Rate', ...            
-            'Mapping', { 'lin', 1, 60}));
+            'Mapping', { 'lin', 1, 14}));
     end
     
     properties (Access = private)        
@@ -113,6 +125,9 @@ classdef Delay2 < audioPlugin
         BufferIndex = 1
         sPointer = 1 % to keep track of sine wave
     
+        % reverse buffer
+        rBuffer
+        rPointer = 1;
         % internal state used by LP and HP filter, all zeros the initial
         % state
         z = zeros(2)
@@ -124,42 +139,41 @@ classdef Delay2 < audioPlugin
     end
     
     methods
+        % Constructor, called when initializing effect
         function obj = Delay2()
             fs = getSampleRate(obj);
             obj.pFractionalDelay = audioexample.DelayFilter( ...
                 'FeedbackLevel', 0.35, ...
                 'SampleRate', fs);
             obj.pSR = fs;
-            % obj.rBuffer = []; % filter buffer
+            % Vibrato
             obj.Buffer = zeros(192001,2);
             obj.BufferIndex = 1;
             obj.sPointer = 1;
+            % Reverse
+            obj.rBuffer = zeros(fs*2+1,2); % max delay time in samples
+            obj.rPointer = 1;
         end
+        
         % set.Effect is called every time a new effect is selected 
         function set.Effect(obj, effect)
              obj.Effect = effect;
         end
-        function effect = get.Effect(obj)
-            effect = obj.Effect;
-        end
+        
         % set.Effect is called every time a new effect is selected 
         function set.Filter(obj, filter)
              obj.Filter = filter;
         end
-        function filter = get.Filter(obj)
-            filter = obj.Filter;
-        end
+
+        % set and get for audioexample.DelayFilter class
         function set.FeedbackLevel(obj, val)
             obj.pFractionalDelay.FeedbackLevel = val;
         end
         function val = get.FeedbackLevel(obj)
             val = obj.pFractionalDelay.FeedbackLevel;
         end
-        % functions to be implemented
-%         function grain = granular()
-%         end
-
         
+        % resets internal states of buffers
         function reset(obj)
             % Reset sample rate
             fs = getSampleRate(obj);
@@ -167,7 +181,6 @@ classdef Delay2 < audioPlugin
             
             % Reset delay
             obj.pFractionalDelay.SampleRate = fs;
-           % obj.rBuffer = [];
             reset(obj.pFractionalDelay);
             
             % reset vibrato 
@@ -175,11 +188,16 @@ classdef Delay2 < audioPlugin
             obj.BufferIndex = 1;
             obj.sPointer = 1;
             
+            % reset reverse buffer
+            obj.rBuffer = zeros(fs*2+1,2); % max delay time in samples
+            obj.rPointer = 1;
+            
             % initialize internal filter state
             obj.z = zeros(2);
             obj.Q = sqrt(2)/2;
             [obj.b, obj.a] = highPassCoeffs(obj.Fc, obj.Q, fs);
         end
+        
         function set.Fc(obj, Fc)
             obj.Fc = Fc;
             fs = getSampleRate(obj);
@@ -191,6 +209,7 @@ classdef Delay2 < audioPlugin
                     [obj.b, obj.a] = lowPassCoeffs(Fc, obj.Q, fs);
             end
         end
+        
         function set.Q(obj,Q)
             obj.Q = Q;
             fs = getSampleRate(obj);
@@ -205,13 +224,16 @@ classdef Delay2 < audioPlugin
         function set.Amount(obj,Amount)
             obj.Amount = Amount;
         end
+        
         function set.Width(obj, Width)
             obj.Width = Width;
         end
+        
         function set.Rate(obj, Rate)
             obj.Rate = Rate;
         end
         
+        % output function, gets called at buffer speed
         function y = process(obj, x)
             delayInSamples = obj.Delay*obj.pSR;
             
@@ -225,9 +247,8 @@ classdef Delay2 < audioPlugin
                      % Output: vibrato, buffer, bufferIndex, Sine wave
                      % pointer
                      [xd, obj.Buffer, obj.BufferIndex, obj.sPointer] = vibrato(xd, obj.pSR, obj.Rate, obj.Width, obj.Buffer, obj.BufferIndex, obj.sPointer); 
-                case 'Reverb'
-                    %[x, obj.rBuffer] = reverb(x, obj.rBuffer);
-               
+                case 'Reverse'
+                    [xd, obj.rBuffer, obj.rPointer] = reverse(xd, obj.rBuffer, delayInSamples, obj.rPointer);
                 case 'Saturation'
                     xd = sat(xd, obj.Amount);
                 case 'Nothing'
@@ -265,9 +286,6 @@ function [b, a] = lowPassCoeffs(Fc,Q, Fs)
   alpha = sin(w0)/sqrt(2 * Q);
   cosw0 = cos(w0);
   norm = 1/(1+alpha);
-  % calculate b & a coeff, still needs some tweaking
-  %b0 = (1 - cos(w0))/2; b1 = 1 - cos(w0); b2 = (1 - cos(w0))/2;
-  b = (1 - cosw0)*norm * [.5 1 .5]; %alpha*norm * [1 0 -1];
-  %a0 =   1 + alpha; a1 =  -2*cos(w0); a2 =   1 - alpha;
+  b = (1 - cosw0)*norm * [.5 1 .5]; 
   a = [1 -2*cosw0*norm  (1 - alpha)*norm];
 end
