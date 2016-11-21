@@ -1,11 +1,17 @@
 deviceReader = audioDeviceReader;
 %deviceReader = dsp.AudioFileReader('Dude.wav');
 deviceWriter = audioDeviceWriter('SampleRate',deviceReader.SampleRate);
-deviceReader.SamplesPerFrame = 1024;
+deviceReader.SamplesPerFrame = 64;
 
 fs = deviceReader.SampleRate;
+% setup for soundcard, soundcard = 1, if a soundcard is attached.
+soundcard = 0;
+if(soundcard)
+    d = deviceReader.getAudioDevices
+    deviceReader.Device = d{3}     % set soundcard as default 
+end
 
-delay = Delay();
+delay = Delay2();
 disp('Begin Signal Input...')
 
 % initialize the centroid and delta with 'bogus' values
@@ -20,7 +26,7 @@ count = 0;
 dtime = [];
 
 tic
-while toc<50
+while toc<25
    
     mySignal = deviceReader();
     myProcessedSignal = process(delay, mySignal);
@@ -28,10 +34,10 @@ while toc<50
     
     % Adaptive part with some mapping 
     % use the interpolator to smooth out centroid-to-delay mapping
-    [delay.DelayTime count C_old C_new delta] = interpolator(delay.DelayTime,mySignal, C_old,C_new, count, delta);
+    [delay.Delay count C_old C_new delta] = interpolator(delay.Delay,mySignal, C_old,C_new, count, delta);
     
     % keeping track of all the calculated delay values (for testing purposes)
-    dtime = [dtime delay.DelayTime];
+    dtime = [dtime delay.Delay];
     
     E = sum(energyLevel(mySignal',1));
     disp(E);
