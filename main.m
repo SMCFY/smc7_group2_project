@@ -34,10 +34,10 @@ while toc<25
     
     % Adaptive part with some mapping 
     % use the interpolator to smooth out centroid-to-delay mapping
-    [delay.DelayTime count C_old C_new delta] = interpolator(delay.DelayTime,mySignal, C_old,C_new, count, delta);
+    [delay.Delay count C_old C_new delta] = interpolator(delay.Delay,mySignal, C_old,C_new, count, delta);
     
     % keeping track of all the calculated delay values (for testing purposes)
-    dtime = [dtime delay.DelayTime];
+    dtime = [dtime delay.Delay];
     
     E = sum(energyLevel(mySignal',1));
     disp(E);
