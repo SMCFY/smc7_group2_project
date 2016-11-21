@@ -33,13 +33,16 @@ classdef Delay2 < audioPlugin
         Gain = 0.5
         % start position of switch. Can we toggled on in audioTestBench
         Effect = 'Nothing'
-        
+        Filter = 'Nothing'
         % Filter variables
         Fc = 20
         Q = sqrt(2)/2
         
         % Saturation
         Amount = 1
+        
+        Width = 6;
+        Rate = 5;
         
     end
        
@@ -79,13 +82,22 @@ classdef Delay2 < audioPlugin
             audioPluginParameter('WetDryMix','DisplayName','Wet/dry mix','Label','','Mapping',{'lin',0 1}),...
             audioPluginParameter('Effect',...
                 'DisplayName','Effect',...
-                'Mapping',{'enum','Nothing','Vibrato', 'Reverb','HighPass Filter', 'LowPass Filter','Saturation'}),... % switch enumerator with different states
+                'Mapping',{'enum','Nothing','Vibrato', 'Reverb','Saturation'}),... % switch enumerator with different states
+             audioPluginParameter('Filter',...
+                'DisplayName','Filter',...
+                'Mapping',{'enum','Nothing','HighPass', 'LowPass'}),...
              audioPluginParameter('Fc','DisplayName','Fc','Label','Hz','Mapping',{'log',20 20000}),...
              audioPluginParameter('Q', ...
             'DisplayName',  'Q', ...            
             'Mapping', { 'log', 0.1, 200}),...
              audioPluginParameter('Amount', ...
             'DisplayName',  'Saturation Amount', ...            
+            'Mapping', { 'lin', 1, 60}),...
+            audioPluginParameter('Width', ...
+            'DisplayName',  'Vibrato Depth', ...            
+            'Mapping', { 'lin', 1, 15}),...
+            audioPluginParameter('Rate', ...
+            'DisplayName',  'Vibrato Rate', ...            
             'Mapping', { 'lin', 1, 60}));
     end
     
@@ -96,14 +108,19 @@ classdef Delay2 < audioPlugin
         
         %pSR Sample rate
         pSR
-        
-        rBuffer
-        
+        % Vibrato buffer + index
+        Buffer = zeros(192001,2)
+        BufferIndex = 1
+        sPointer = 1 % to keep track of sine wave
+    
         % internal state used by LP and HP filter, all zeros the initial
         % state
         z = zeros(2)
         b = zeros(1,3)
         a = zeros(1,3)
+        
+        
+        
     end
     
     methods
@@ -113,7 +130,10 @@ classdef Delay2 < audioPlugin
                 'FeedbackLevel', 0.35, ...
                 'SampleRate', fs);
             obj.pSR = fs;
-            obj.rBuffer = []; % filter buffer
+            % obj.rBuffer = []; % filter buffer
+            obj.Buffer = zeros(192001,2);
+            obj.BufferIndex = 1;
+            obj.sPointer = 1;
         end
         % set.Effect is called every time a new effect is selected 
         function set.Effect(obj, effect)
@@ -121,6 +141,13 @@ classdef Delay2 < audioPlugin
         end
         function effect = get.Effect(obj)
             effect = obj.Effect;
+        end
+        % set.Effect is called every time a new effect is selected 
+        function set.Filter(obj, filter)
+             obj.Filter = filter;
+        end
+        function filter = get.Filter(obj)
+            filter = obj.Filter;
         end
         function set.FeedbackLevel(obj, val)
             obj.pFractionalDelay.FeedbackLevel = val;
@@ -140,8 +167,13 @@ classdef Delay2 < audioPlugin
             
             % Reset delay
             obj.pFractionalDelay.SampleRate = fs;
-            obj.rBuffer = [];
+           % obj.rBuffer = [];
             reset(obj.pFractionalDelay);
+            
+            % reset vibrato 
+            obj.Buffer = zeros(192001,2);
+            obj.BufferIndex = 1;
+            obj.sPointer = 1;
             
             % initialize internal filter state
             obj.z = zeros(2);
@@ -152,26 +184,32 @@ classdef Delay2 < audioPlugin
             obj.Fc = Fc;
             fs = getSampleRate(obj);
             % Switch to decide which filter to use
-            switch obj.Effect
-                case 'HighPass Filter' 
+            switch obj.Filter
+                case 'HighPass' 
                     [obj.b, obj.a] = highPassCoeffs(Fc, obj.Q, fs);
-                case 'LowPass Filter'
+                case 'LowPass'
                     [obj.b, obj.a] = lowPassCoeffs(Fc, obj.Q, fs);
             end
         end
         function set.Q(obj,Q)
             obj.Q = Q;
             fs = getSampleRate(obj);
-            switch obj.Effect
-                case 'HighPass Filter' 
+            switch obj.Filter
+                case 'HighPass' 
                     [obj.b, obj.a] = highPassCoeffs(obj.Fc, obj.Q, fs);
-                case 'LowPass Filter'
+                case 'LowPass'
                     [obj.b, obj.a] = lowPassCoeffs(obj.Fc, obj.Q, fs);
             end
         end
         
         function set.Amount(obj,Amount)
             obj.Amount = Amount;
+        end
+        function set.Width(obj, Width)
+            obj.Width = Width;
+        end
+        function set.Rate(obj, Rate)
+            obj.Rate = Rate;
         end
         
         function y = process(obj, x)
@@ -183,18 +221,26 @@ classdef Delay2 < audioPlugin
             % Switch to toggle on effects/filter on dry or wet signal  
             switch obj.Effect
                 case 'Vibrato'
-                     xd = vibrato(xd, obj.pSR, 4, 0.0005); 
+                     % Input: signal, fs, modfreq, width, buffer,bufferIndex, sineBuffer
+                     % Output: vibrato, buffer, bufferIndex, Sine wave
+                     % pointer
+                     [xd, obj.Buffer, obj.BufferIndex, obj.sPointer] = vibrato(xd, obj.pSR, obj.Rate, obj.Width, obj.Buffer, obj.BufferIndex, obj.sPointer); 
                 case 'Reverb'
                     %[x, obj.rBuffer] = reverb(x, obj.rBuffer);
-                case 'HighPass Filter' 
-                    [xd,obj.z] = filter(obj.b, obj.a, xd, obj.z);
-                case 'LowPass Filter'
-                    [xd,obj.z] = filter(obj.b, obj.a, xd, obj.z);
+               
                 case 'Saturation'
                     xd = sat(xd, obj.Amount);
                 case 'Nothing'
             end
             
+            switch obj.Filter
+             case 'HighPass' 
+                    [xd,obj.z] = filter(obj.b, obj.a, xd, obj.z);
+                case 'LowPass'
+                    [xd,obj.z] = filter(obj.b, obj.a, xd, obj.z);
+                    
+                case 'Nothing'
+            end
             % Calculate output by adding wet and dry signal in appropriate
             % ratio
             mix = obj.WetDryMix;

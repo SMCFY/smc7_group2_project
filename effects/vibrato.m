@@ -1,32 +1,48 @@
 % Vibrato 
 % taken from this website http://users.cs.cf.ac.uk/Dave.Marshall/CM0268/PDF/10_CM0268_Audio_FX.pdf
-function y=vibrato(x,SAMPLERATE,Modfreq,Width)
+function [y, buffer, bufferIndex, sineP] = vibrato(x, fs, modfreq, width, buffer,bufferIndex, sineP)
 % Modfreq in Khz, Width = 0.0008; % 0.8 Milliseconds
-ya_alt=0;
-Delay=Width; % basic delay of input sample in sec
-DELAY=round(Delay*SAMPLERATE); % basic delay in # samples
-WIDTH=round(Width*SAMPLERATE); % modulation width in # samples
-if WIDTH>DELAY 
-  error('delay greater than basic delay !!!');
-  return;
-end
-MODFREQ=Modfreq/SAMPLERATE; % modulation frequency in # samples
-LEN=length(x);        % # of samples in WAV-file
-L=2+DELAY+WIDTH*2;    % length of the entire delay  
-Delayline=zeros(L,1); % memory allocation for delay
-y=zeros(size(x));     % memory allocation for output vector
 
-for n=1:(LEN-1)
-   M=MODFREQ;
-   MOD=sin(M*2*pi*n);
-   ZEIGER=1+DELAY+WIDTH*MOD;
-   i=floor(ZEIGER);
-   frac=ZEIGER-i;
-   Delayline=[x(n);Delayline(1:L-1)]; 
+wIndex = bufferIndex;
+delay = width;
+M = modfreq/fs; % modulation frequency in # samples
+
+buf=zeros(size(x));     % memory allocation for output vector
+
+for i=1:size(x,1)
+   buffer(wIndex, :) = x(i,:); 
+
+   MOD=sin(M*2*pi*sineP);
+   
+   sineP = sineP + 1;
+   
+   if sineP > 44100*3
+       sineP = 1;
+   end
+   
+   ZEIGER=1+delay+width*MOD;
+   n=floor(ZEIGER);
+   frac=ZEIGER-n;
+   rIndex = wIndex - n;
+   
+   if rIndex <= 0
+       rIndex = rIndex + 192001;
+   end
+   
    %---Linear Interpolation-----------------------------
-   y(n,1)=Delayline(i+1)*frac+Delayline(i)*(1-frac); 
-   y(n,2)=Delayline(i+1)*frac+Delayline(i)*(1-frac); 
-   %---Allpass Interpolation------------------------------
-  % ya(n,1)=(Delayline(i+1)+(1-frac)*Delayline(i)-(1-frac)*ya_alt);  
-  % ya_alt=ya(n,1);
+   y(i,1)=buffer(rIndex+1)*frac+buffer(rIndex)*(1-frac); 
+   y(i,2)=buffer(rIndex+1)*frac+buffer(rIndex)*(1-frac); 
+   
+   wIndex = wIndex + 1;
+   if wIndex > 192001
+       wIndex =  1;
+   end
+   
+%    rIndex = rIndex + 1;
+%    if rIndex > 192001
+%        rIndex =  1;
+%    end
+
+bufferIndex = wIndex;
+
 end 
