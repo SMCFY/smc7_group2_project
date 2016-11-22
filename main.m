@@ -15,7 +15,8 @@ fs = deviceReader.SampleRate;
 XmagPrev = zeros(256,1);
 threshold = 700;
 noveltyC = [];
-onsetV = [];
+% onsetV = [];
+magSpecSum = [];
 % ------------------------------
 
 tic
@@ -34,7 +35,7 @@ while toc<5
     %count = count + 1;
    
     %onsetV = [onsetV, onset];
-    
+    magSpecSum = [magSpecSum, sum(abs(fft(mySignal)))/100];
 end
 
 %amountOfOnsets = sum(onsetBuffer);
@@ -45,9 +46,15 @@ end
 %t = sprintf('run time in seconds: %1f', (count*bufferSize)/fs);
 %disp(t)
 
+b = [0.2, 0.2, 0.2, 0.2, 0.2];
+a = [1];
+noveltySmooth = filter(b,a,noveltyC);
+
 % ONSET PLOT ---------
-plot(noveltyC); hold on;
-%plot(onsetV * threshold);
+plot(noveltyC, 'g'); hold on;
+plot(magSpecSum, 'r'); hold on;
+plot(noveltySmooth, 'b');
+legend('novelty curve', 'summed magnitude', 'smoothed novelty curve');
 % ---------------------
 
 release(deviceReader)

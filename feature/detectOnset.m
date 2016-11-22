@@ -13,16 +13,14 @@ function [noveltyC, XmagPrev] = detectOnset(signal, threshold, duration, novelty
 %   XmagPrev - spectrum buffer
 %	noveltyC - SF over time
 
-if sum(signal) < 0.09
-    signal = zeros(length(signal),1);
-end
+% if sum(signal) < 0.09
+%     signal = zeros(length(signal),1);
+% end
 % detection function -----------------------------------
 signal = signal / max(abs(signal)); % normalization of the signal   
 Xmag = abs(fft(signal,2*length(signal))); %magnitude spectrum
 Xmag = Xmag(1:length(signal)); % consider spectrum until nyquist freq     
 Xmag = Xmag / max(Xmag); % normalization of the spectrum
-
-Xmag(length(Xmag),1) = 20000;
 
 if (XmagPrev>0)
     
