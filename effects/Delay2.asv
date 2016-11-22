@@ -229,9 +229,6 @@ classdef Delay2 < audioPlugin
                     %[x, obj.rBuffer] = reverb(x, obj.rBuffer);
                
                 case 'Saturation'
-                    E = sum(energyLevel(x(:,1)',1));
-                    Emapped = mapRange(10,1,1000,0,E);
-                    %disp(Emapped)
                     xd = sat(xd, obj.Amount);
                 case 'Nothing'
             end
@@ -247,8 +244,8 @@ classdef Delay2 < audioPlugin
             % Calculate output by adding wet and dry signal in appropriate
             % ratio
             mix = obj.WetDryMix;
-%              E = sum(energyLevel(x(:,1)',1));
-%              Emapped = mapRange(0,1,1000,0,E)
+            E = sum(energyLevel(x(:,1)',1))/1000+1
+            Emapped = mapRange(30,1,1000,0,E)
             y = (1-mix)*x + (mix)*(obj.Gain.*xd);
         end
     end
