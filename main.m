@@ -25,16 +25,15 @@ while toc<5
     %myProcessedSignal = process(delay, mySignal);
    % deviceWriter(myProcessedSignal);
     
-    [onset, XmagPrev, SF] = detectOnset(mySignal, threshold, XmagPrev);
-    if onset == 1
-    	disp('ONSET');
+    [noveltyC, XmagPrev] = detectOnset(mySignal, threshold, duration, noveltyC, XmagPrev);
+    %if onset == 1
+    %	disp('ONSET');
         %onsetBuffer(count*bufferSize,1) = 1;
         
-    end
+    %end
     %count = count + 1;
-    
-    noveltyC = [noveltyC , SF];
-    onsetV = [onsetV, onset];
+   
+    %onsetV = [onsetV, onset];
     
 end
 
@@ -48,7 +47,7 @@ end
 
 % ONSET PLOT ---------
 plot(noveltyC); hold on;
-plot(onsetV * threshold);
+%plot(onsetV * threshold);
 % ---------------------
 
 release(deviceReader)

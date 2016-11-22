@@ -1,18 +1,20 @@
 
-function [onset, XmagPrev, SF] = detectOnset(signal, threshold, XmagPrev)
+function [noveltyC, XmagPrev] = detectOnset(signal, threshold, duration, noveltyC,  XmagPrev)
 % ONSET DETECTION 
 %   detects musical onsets by transient regions in signal based on spectral flux
 % 
 % ARGUMENTS:
 %   signal - the windowed signal (buffer)
 %   threshold - the threshold of spectral flux for onset detection
+%	duration - length of novelty curve
+% 	noveltyC - novelty curve
 %   XmagPrev - previously returned magnitude spectrum
 %   
 % OUTPUT:
-%   onset - onset
 %   XmagPrev - spectrum buffer
-%   SF - spectral flux
+%	noveltyC - SF over time
 
+% detection function -----------------------------------
 signal = signal / max(abs(signal)); % normalization of the signal   
 Xmag = abs(fft(signal,2*length(signal))); %magnitude spectrum
 Xmag = Xmag(1:length(signal)); % consider spectrum until nyquist freq     
@@ -22,21 +24,19 @@ if (XmagPrev>0)
     
     specDiff = ((Xmag-XmagPrev + abs(Xmag-XmagPrev))/2).^2; % energy of rectified spectral difference
     SF = sum(specDiff); % spectral flux
-    SF = SF^10; % accentuation
+    %SF = SF^10; % accentuation
 
 else
     SF = 0; % the first output
 end
-  
+
+noveltyC = [noveltyC, SF];
+
+
+
 XmagPrev = Xmag; % storing the spectrum
 
-
-if SF > threshold % peak picking
-    onset = 1;
-
-else
-    onset = 0;
-end
-
+% peak picking ----------------------------------
+% 
 
 end
