@@ -34,7 +34,6 @@ while toc<5
     %end
     %count = count + 1;
    
-    %onsetV = [onsetV, onset];
     magSpecSum = [magSpecSum, sum(abs(fft(mySignal)))/100];
 end
 
