@@ -34,5 +34,4 @@ function [out, buffer, bufferIndex] = reverse(x, buffer,delay, bufferIndex)
         out = rev(bufferIndex:writeIndex-1,:); 
     end
     bufferIndex = writeIndex;   % override bufferIndex for next buffer
-   
 end

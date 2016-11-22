@@ -7,8 +7,6 @@ wIndex = bufferIndex;
 delay = width;
 M = modfreq/fs; % modulation frequency in # samples
 
-buf=zeros(size(x));     % memory allocation for output vector
-
 for i=1:size(x,1)
    buffer(wIndex, :) = x(i,:); 
 
@@ -16,7 +14,7 @@ for i=1:size(x,1)
    
    sineP = sineP + 1;
    
-   if sineP > 44100*3
+   if sineP > 192001
        sineP = 1;
    end
    
@@ -37,11 +35,6 @@ for i=1:size(x,1)
    if wIndex > 192001
        wIndex =  1;
    end
-   
-%    rIndex = rIndex + 1;
-%    if rIndex > 192001
-%        rIndex =  1;
-%    end
 
 bufferIndex = wIndex;
 
