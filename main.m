@@ -12,7 +12,7 @@ fs = deviceReader.SampleRate;
 %onsetBuffer = zeros(runTime*fs,1);
 
 % ONSET TEST PARAMS -----------
-XmagPrev = zeros(1,256);
+XmagPrev = zeros(256,1);
 threshold = 700;
 noveltyC = [];
 onsetV = [];
