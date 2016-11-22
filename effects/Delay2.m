@@ -56,6 +56,8 @@ classdef Delay2 < audioPlugin
         Width = 6;
         Rate = 5;
         
+        guitar = 'Not Connected';
+        
     end
        
     properties (Dependent)
@@ -115,7 +117,10 @@ classdef Delay2 < audioPlugin
             'Mapping', { 'lin', 1, 10}),...
             audioPluginParameter('Rate', ...
             'DisplayName',  'Vibrato Rate', ...            
-            'Mapping', { 'lin', 1, 14}));
+            'Mapping', { 'lin', 1, 14}),...
+            audioPluginParameter('guitar',...
+                'DisplayName','Guitar',...
+                'Mapping',{'enum','Not Connected','Connected'}));
     end
     
     properties (Access = private)        
@@ -240,6 +245,12 @@ classdef Delay2 < audioPlugin
         
         % output function, gets called at buffer speed
         function y = process(obj, x)
+
+            switch obj.guitar
+                case 'Connected'
+                    x(:,2) = x(:,1);
+                case 'Not Connected'
+            end
             delayInSamples = obj.Delay*obj.pSR;
             
             % Delay the input
@@ -271,6 +282,7 @@ classdef Delay2 < audioPlugin
             % ratio
             mix = obj.WetDryMix;
             y = (1-mix)*x + (mix)*(obj.Gain.*xd);
+            
         end
     end
 end
