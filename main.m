@@ -18,7 +18,7 @@ noveltyC = [];
 % onsetV = [];
 magSpecSum = [];
 % ------------------------------
-
+x = [];
 tic
 while toc<5
    
@@ -35,6 +35,8 @@ while toc<5
     %count = count + 1;
    
     magSpecSum = [magSpecSum, sum(abs(fft(mySignal)))/100];
+    
+    x = [x; mySignal];
 end
 
 %amountOfOnsets = sum(onsetBuffer);
@@ -55,6 +57,6 @@ plot(magSpecSum, 'r'); hold on;
 plot(noveltySmooth, 'b');
 legend('novelty curve', 'summed magnitude', 'smoothed novelty curve');
 % ---------------------
-sound(mySignal);
+sound(x,fs);
 release(deviceReader)
 release(deviceWriter)
