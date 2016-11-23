@@ -15,16 +15,17 @@ function [noveltyC, XmagPrev] = detectOnset(signal, threshold, duration, novelty
 
 
 % detection function -----------------------------------
-noiseLimit = 0.001;
-polarS = sign(signal); % retain polarity of waveform
+noiseLimit = 0.01;
+%polarS = sign(signal); % retain polarity of waveform
 for i=1:length(signal) % noise gate
-	if (signal(i)<noiseLimit)
+	if (abs(signal(i))<noiseLimit)
 		signal(i) = 0;
-	else
-		signal(i) = signal(i)*polarS(i);
-	end
+    end
+    
 end
-signal = signal / max(abs(signal)); % normalization of the signal   
+signal = signal / max(abs(signal)); % normalization of the signal 
+
+%signal = signal - noiseLimit; % DC offset
 
 Xmag = abs(fft(signal,2*length(signal))); %magnitude spectrum
 Xmag = Xmag(1:length(signal)); % consider spectrum until nyquist freq     
