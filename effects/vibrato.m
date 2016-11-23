@@ -2,7 +2,7 @@
 % taken from this website http://users.cs.cf.ac.uk/Dave.Marshall/CM0268/PDF/10_CM0268_Audio_FX.pdf
 function [y, buffer, bufferIndex, sineP] = vibrato(x, fs, modfreq, width, buffer,bufferIndex, sineP)
 % Modfreq in Khz, Width = 0.0008; % 0.8 Milliseconds
-
+y = zeros(size(x));
 wIndex = bufferIndex;
 delay = width;
 M = modfreq/fs; % modulation frequency in # samples
@@ -28,8 +28,8 @@ for i=1:size(x,1)
    end
    
    %---Linear Interpolation-----------------------------
-   y(i,1)=buffer(rIndex+1)*frac+buffer(rIndex)*(1-frac); 
-   y(i,2)=buffer(rIndex+1)*frac+buffer(rIndex)*(1-frac); 
+   y(i,:)=buffer(rIndex+1)*frac+buffer(rIndex)*(1-frac); 
+   %y(i,2)=buffer(rIndex+1)*frac+buffer(rIndex)*(1-frac); 
    
    wIndex = wIndex + 1;
    if wIndex > 192001

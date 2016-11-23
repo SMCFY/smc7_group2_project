@@ -204,7 +204,6 @@ classdef Delay2 < audioPlugin
             
             % initialize internal filter state
             obj.z = zeros(2);
-            obj.Q = sqrt(2)/2;
             [obj.b, obj.a] = highPassCoeffs(obj.Fc, obj.Q, fs);
         end
         
