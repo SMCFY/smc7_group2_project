@@ -55,6 +55,6 @@ plot(magSpecSum, 'r'); hold on;
 plot(noveltySmooth, 'b');
 legend('novelty curve', 'summed magnitude', 'smoothed novelty curve');
 % ---------------------
-
+sound(mySignal);
 release(deviceReader)
 release(deviceWriter)
