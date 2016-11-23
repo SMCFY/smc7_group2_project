@@ -23,13 +23,13 @@ for i=1:length(signal) % noise gate
     end
     
 end
-signal = signal / max(abs(signal)); % normalization of the signal 
+%signal = signal / max(abs(signal)); % normalization of the signal 
 
 %signal = signal - noiseLimit; % DC offset
 
 Xmag = abs(fft(signal,2*length(signal))); %magnitude spectrum
 Xmag = Xmag(1:length(signal)); % consider spectrum until nyquist freq     
-Xmag = Xmag / max(Xmag); % normalization of the spectrum
+%Xmag = Xmag / max(Xmag); % normalization of the spectrum
 
 if (XmagPrev>0)
     
