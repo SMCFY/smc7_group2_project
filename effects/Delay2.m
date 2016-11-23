@@ -264,7 +264,7 @@ classdef Delay2 < audioPlugin
                      % pointer
                      [xd, obj.Buffer, obj.BufferIndex, obj.sPointer] = vibrato(xd, obj.pSR, obj.Rate, obj.Width, obj.Buffer, obj.BufferIndex, obj.sPointer); 
                 case 'Reverse'
-                    [xd, obj.rBuffer, obj.rPointer] = reverse(xd, obj.rBuffer, delayInSamples, obj.rPointer);
+                    [xd, obj.rBuffer, obj.rPointer] = reverse(x, obj.rBuffer, delayInSamples, obj.rPointer);
                 case 'Saturation'
                     xd = sat(xd, obj.Amount);
                 case 'Nothing'
