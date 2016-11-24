@@ -7,18 +7,19 @@ delay = Delay2();
 disp('Begin Signal Input...')
 fs = deviceReader.SampleRate;
 %runTime = 5; % run time in seconds
-%bufferSize = deviceReader.SamplesPerFrame;
+bufferSize = deviceReader.SamplesPerFrame;
 %count = 0;
 %onsetBuffer = zeros(runTime*fs,1);
 
 % ONSET TEST PARAMS -----------
 XmagPrev = zeros(256,1);
-threshold = 700;
+durationInSamples = round(2*fs/bufferSize); % 2 seconds
 noveltyC = [];
-% onsetV = [];
 magSpecSum = [];
+curPos = 1;
+threshold = 25;
 % ------------------------------
-x = [];
+%x = [];
 tic
 while toc<5
    
@@ -26,7 +27,9 @@ while toc<5
     %myProcessedSignal = process(delay, mySignal);
    % deviceWriter(myProcessedSignal);
     
-    [noveltyC, XmagPrev] = detectOnset(mySignal, threshold, duration, noveltyC, XmagPrev);
+    [noveltyC, XmagPrev] = detectOnset(mySignal, noveltyC, XmagPrev);
+    [onsetLoc, curPos] = localizeOnset(noveltyC, durationInSamples, threshold, curPos);
+    
     %if onset == 1
     %	disp('ONSET');
         %onsetBuffer(count*bufferSize,1) = 1;
@@ -34,9 +37,9 @@ while toc<5
     %end
     %count = count + 1;
    
-    magSpecSum = [magSpecSum, sum(abs(fft(mySignal)))/100];
+    magSpecSum = [magSpecSum, sum(abs(fft(mySignal)))];
     
-    x = [x; mySignal];
+    %x = [x; mySignal];
 end
 
 %amountOfOnsets = sum(onsetBuffer);
@@ -47,16 +50,13 @@ end
 %t = sprintf('run time in seconds: %1f', (count*bufferSize)/fs);
 %disp(t)
 
-b = [0.2, 0.2, 0.2, 0.2, 0.2];
-a = [1];
-noveltySmooth = filter(b,a,noveltyC);
 
 % ONSET PLOT ---------
-plot(noveltyC, 'g'); hold on;
+plot(filter([0.2, 0.2, 0.2, 0.2, 0.2], 1, noveltyC), 'g'); hold on;
 plot(magSpecSum, 'r'); hold on;
-plot(noveltySmooth, 'b');
-legend('novelty curve', 'summed magnitude', 'smoothed novelty curve');
+plot([zeros(1, durationInSamples + bufferSize), onsetLoc*10000], 'b');
+legend('novelty curve', 'summed magnitude', 'onset location');
 % ---------------------
-sound(x,fs);
+%sound(x,fs);
 release(deviceReader)
 release(deviceWriter)
