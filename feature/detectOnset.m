@@ -1,11 +1,11 @@
 function [noveltyC, XmagPrev] = detectOnset(signal, noveltyC,  XmagPrev)
 % ONSET DETECTION 
-%   detects musical onsets by transient regions in signal based on spectral flux
+%   returns a novelty curve, showing transient regions in signal based on spectral flux
 % 
 % ARGUMENTS:
 %   signal - the windowed signal (buffer)
 % 	noveltyC - novelty curve
-%   XmagPrev - previously returned magnitude spectrum
+%   XmagPrev - previously calculated magnitude spectrum
 %   
 % OUTPUT:
 %   XmagPrev - spectrum buffer

@@ -13,12 +13,14 @@ bufferSize = deviceReader.SamplesPerFrame;
 
 % ONSET TEST PARAMS -----------
 XmagPrev = zeros(256,1);
-durationInSamples = round(3*fs/bufferSize); % 3 seconds
+durationInBuffers = round(5*fs/bufferSize); % 5 seconds
 noveltyC = [];
 magSpecSum = [];
 curPos = 1;
-threshold = 50;
+onsetInterval = 0;
+threshold = 30;
 temporalThreshold = 0;
+onsetDev = 0;
 % ------------------------------
 %x = [];
 tic
@@ -29,12 +31,12 @@ while toc<50
    % deviceWriter(myProcessedSignal);
     
     [noveltyC, XmagPrev] = detectOnset(mySignal, noveltyC, XmagPrev);
-    [onsetLoc, curPos] = localizeOnset(noveltyC, durationInSamples, threshold, temporalThreshold, curPos);
+    [onsetDev, onsetInterval, curPos] = localizeOnset(noveltyC, durationInBuffers, threshold, temporalThreshold, onsetInterval, curPos, onsetDev);
     
     %count = count + 1;
    
     magSpecSum = [magSpecSum, sum(abs(fft(mySignal)))];
-    
+    disp(onsetDev);
     %x = [x; mySignal];
 end
 
