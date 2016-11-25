@@ -13,28 +13,24 @@ bufferSize = deviceReader.SamplesPerFrame;
 
 % ONSET TEST PARAMS -----------
 XmagPrev = zeros(256,1);
-durationInSamples = round(2*fs/bufferSize); % 2 seconds
+durationInSamples = round(3*fs/bufferSize); % 3 seconds
 noveltyC = [];
 magSpecSum = [];
 curPos = 1;
-threshold = 25;
+threshold = 50;
+temporalThreshold = 0;
 % ------------------------------
 %x = [];
 tic
-while toc<5
+while toc<50
    
     mySignal = deviceReader();
     %myProcessedSignal = process(delay, mySignal);
    % deviceWriter(myProcessedSignal);
     
     [noveltyC, XmagPrev] = detectOnset(mySignal, noveltyC, XmagPrev);
-    [onsetLoc, curPos] = localizeOnset(noveltyC, durationInSamples, threshold, curPos);
+    [onsetLoc, curPos] = localizeOnset(noveltyC, durationInSamples, threshold, temporalThreshold, curPos);
     
-    %if onset == 1
-    %	disp('ONSET');
-        %onsetBuffer(count*bufferSize,1) = 1;
-        
-    %end
     %count = count + 1;
    
     magSpecSum = [magSpecSum, sum(abs(fft(mySignal)))];
@@ -53,9 +49,8 @@ end
 
 % ONSET PLOT ---------
 plot(filter([0.2, 0.2, 0.2, 0.2, 0.2], 1, noveltyC), 'g'); hold on;
-plot(magSpecSum, 'r'); hold on;
-plot([zeros(1, durationInSamples + bufferSize), onsetLoc*10000], 'b');
-legend('novelty curve', 'summed magnitude', 'onset location');
+plot(magSpecSum, 'r');
+legend('novelty curve', 'summed magnitude');
 % ---------------------
 %sound(x,fs);
 release(deviceReader)
