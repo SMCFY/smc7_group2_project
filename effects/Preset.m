@@ -3,6 +3,10 @@ classdef Preset < handle
         % Delay, Gain, Feedback, Mix, Fc, Q, vDepth, vRate, sAmount,
         % DelayON, VibratoON, ReverseON, SaturationON, LPF, HPF
         Dreamy(0.5, 1, 0.3, 0.8, 5000, 0.5, 10, 3, 1, 1, 1, 0, 0, 1, 0)
+        
+        Reverse(0.7, 1, 0.3, 0.4,...% Delay, Gain, Feedback, Mix,
+            500, 12, 10, 3, 5,...  % Fc vDepth, vRate, sAmount
+            1, 0, 1, 1, 1, 0)       % DelayON, VibratoON, ReverseON, SaturationON, LPFON, HPFON
     end
     properties
         Delay

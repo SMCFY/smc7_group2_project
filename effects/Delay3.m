@@ -32,31 +32,31 @@ classdef Delay3 < audioPlugin
     %           Effects to implemented: Reverb?, grainular
     %           delay.
     properties
-        preset = Preset.Dreamy
-        %Delay Base delay (s)
-        %   Specify the base delay for echo effect as positive scalar
-        %   value in seconds. Base delay value must be in the range between
-        %   0 and 1 seconds. The default value of this property is 0.5.
-        Delay 
-        
-        %Gain Gain of delay branch
-        %   Specify the gain value as a positive scalar. This value must be
-        %   in the range between 0 and 1. The default value of this
-        %   property is 0.5.
-        Gain
-       
-        % Filter variables
-        Fc 
-        Q 
-        
-        % Vibrato
-        Width 
-        Rate
-        
-        % Saturation
-        Amount 
-        
         PresetChoice = PresetEnum.Dreamy
+        preset = Preset.Dreamy
+%         %Delay Base delay (s)
+%         %   Specify the base delay for echo effect as positive scalar
+%         %   value in seconds. Base delay value must be in the range between
+%         %   0 and 1 seconds. The default value of this property is 0.5.
+%         Delay 
+%         
+%         %Gain Gain of delay branch
+%         %   Specify the gain value as a positive scalar. This value must be
+%         %   in the range between 0 and 1. The default value of this
+%         %   property is 0.5.
+%         Gain
+%        
+%         % Filter variables
+%         Fc 
+%         Q 
+%         
+%         % Vibrato
+%         Width 
+%         Rate
+%         
+%         % Saturation
+%         Amount 
+        
         % Mono --> Stereo switch
         Guitar = GuitarEnum.NotConnected
         
@@ -68,7 +68,7 @@ classdef Delay3 < audioPlugin
         %   value must range from 0 to 0.5. Setting FeedbackLevel to 0
         %   turns off the feedback. The default value of this property is
         %   0.35.
-        FeedbackLevel = 0.35% preset.Feedback
+        FeedbackLevel = 0.35 % preset.Feedback
         
     end
     
@@ -79,7 +79,7 @@ classdef Delay3 < audioPlugin
         %   will be 60% wet to 40% dry signal (Wet - Signal that has effect
         %   in it. Dry - Unaffected signal).  The default value of this
         %   property is 0.5.
-        WetDryMix = 0.5
+%         WetDryMix = 0.5
     end
     
     properties (Constant)
@@ -94,7 +94,7 @@ classdef Delay3 < audioPlugin
             'UniqueId', '4pvz',...
             audioPluginParameter('PresetChoice',...
             'DisplayName','Effect',...
-            'Mapping',{'enum','Dreamy','Wacky'}),... % switch enumerator with different states
+            'Mapping',{'enum','Dreamy','Reverse'}),... % switch enumerator with different states
             audioPluginParameter('Guitar',...
             'DisplayName','Guitar','Mapping',{'enum','Not Connected','Connected'}));
     end
@@ -117,14 +117,19 @@ classdef Delay3 < audioPlugin
         
         % internal state used by LP and HP filter, all zeros the initial
         % state
-        z = zeros(2)
-        b = zeros(1,3)
-        a = zeros(1,3)
+        zHP = zeros(2)
+        bHP = zeros(1,3)
+        aHP = zeros(1,3)
+        % internal state used by LP and HP filter, all zeros the initial
+        % state
+        zLP = zeros(2)
+        bLP = zeros(1,3)
+        aLP = zeros(1,3)
     end
     
     methods
         % Constructor, called when initializing effect
-        function obj = Delay3()
+        function obj = Delay3
             fs = getSampleRate(obj);
             obj.pFractionalDelay = audioexample.DelayFilter( ...
                 'FeedbackLevel', 0.35, ...
@@ -135,13 +140,13 @@ classdef Delay3 < audioPlugin
             UpdatePreset(obj);
         end
         
-        % set and get for audioexample.DelayFilter class
-%         function set.FeedbackLevel(obj, val)
-%             obj.pFractionalDelay.FeedbackLevel = val;
-%         end
-%         function val = get.FeedbackLevel(obj)
-%             val = obj.pFractionalDelay.FeedbackLevel;
-%         end
+        %set and get for audioexample.DelayFilter class
+        function set.FeedbackLevel(obj, val)
+            obj.pFractionalDelay.FeedbackLevel = val;
+        end
+        function val = get.FeedbackLevel(obj)
+            val = obj.pFractionalDelay.FeedbackLevel;
+        end
         
         % resets internal states of buffers
         function reset(obj)
@@ -163,19 +168,53 @@ classdef Delay3 < audioPlugin
             obj.rPointer = 1;
             
             % initialize internal filter state
-            obj.z = zeros(2);
-            [obj.b, obj.a] = highPassCoeffs(obj.Fc, obj.Q, fs);
+            obj.zHP = zeros(2); obj.zLP = zeros(2);
+            [obj.bHP, obj.aHP] = highPassCoeffs(obj.preset.Fc, obj.preset.Q, fs);
+            [obj.bLP, obj.aLP] = lowPassCoeffs(obj.preset.Fc, obj.preset.Q, fs);
         end
-        
         
         function calculateFilterCoeff(obj)
             fs = getSampleRate(obj);
-%             switch obj.FilterType
-%                 case FilterEnum.HighPassFilter
-%                     [obj.b, obj.a] = highPassCoeffs(obj.Fc, obj.Q, fs);
-%                 case FilterEnum.LowPassFilter
-%                     [obj.b, obj.a] = lowPassCoeffs(obj.Fc, obj.Q, fs);
-%             end
+            if obj.preset.HPFON
+                    [obj.bHP, obj.aHP] = highPassCoeffs(obj.preset.Fc, obj.preset.Q, fs);
+            end
+            if obj.preset.LPFON
+                [obj.bLP, obj.aLP] = lowPassCoeffs(obj.preset.Fc, obj.preset.Q, fs);
+            end
+        end
+        
+        function set.PresetChoice(obj, preset)
+            obj.PresetChoice = preset;
+            UpdatePreset(obj);
+        end
+        
+        function UpdatePreset(obj)
+            
+            switch obj.PresetChoice
+                case PresetEnum.Dreamy
+                    obj.preset = Preset.Dreamy;
+                case PresetEnum.Reverse
+                    obj.preset = Preset.Reverse;
+            end
+            calculateFilterCoeff(obj);
+
+%             
+%             %Delay Base delay (s)
+%             obj.Delay = obj.preset.Delay;
+%             
+%             %Gain
+%             obj.Gain = obj.preset.Gain;
+%             
+%             % Filter variables
+%             obj.Fc = obj.preset.Fc;
+%             obj.Q = obj.preset.Q;
+%             
+%             % Vibrato
+%             obj.Width = obj.preset.vDepth;
+%             obj.Rate = obj.preset.vRate;
+%             
+%             % Saturation
+%             obj.Amount = obj.preset.sAmount;
         end
         
         function [x, xd] = setEffect(obj, x, xd)
@@ -184,47 +223,25 @@ classdef Delay3 < audioPlugin
                     % Input: signal, fs, modfreq, width, buffer,bufferIndex, sineBuffer
                     % Output: vibrato, buffer, bufferIndex, Sine wave
                     % pointer
-                    [xd, obj.Buffer, obj.BufferIndex, obj.sPointer] = vibrato(x, obj.pSR, obj.Rate, obj.Width, obj.Buffer, obj.BufferIndex, obj.sPointer);
+                    [xd, obj.Buffer, obj.BufferIndex, obj.sPointer] = vibrato(xd, obj.pSR, obj.preset.vRate, obj.preset.vDepth, obj.Buffer, obj.BufferIndex, obj.sPointer);
            end
            if obj.preset.ReverseON
-                    delayInSamples = obj.Delay*obj.pSR;
-                    [xd, obj.rBuffer, obj.rPointer] = reverse(x, obj.rBuffer, delayInSamples, obj.rPointer);
+                    delayInSamples = obj.preset.Delay*obj.pSR;
+                    [xd, obj.rBuffer, obj.rPointer] = reverse(xd, obj.rBuffer, delayInSamples, obj.rPointer);
            end     
            if obj.preset.SaturationON
-                    xd = sat(xd, obj.Amount);
+                    xd = sat(xd, obj.preset.sAmount);
            end
-            
-%             if obj.preset.LPFON || obj.preset.HPFON
-% %                 fs = getSampleRate(obj);
-%                 if obj.preset.LPFON 
-%                     
-%                     [xd,obj.z] = filter(obj.b, obj.a, xd, obj.z);
-%                 end
-%                 case FilterEnum.LowPassFilter
-%                     [xd,obj.z] = filter(obj.b, obj.a, xd, obj.z);
-%                 case FilterEnum.Nothing
-           % end
 
+           if obj.preset.LPFON
+               [xd,obj.zLP] = filter(obj.bLP, obj.aLP, xd, obj.zLP);
+           end
+           
+           if obj.preset.HPFON
+               [xd,obj.zHP] = filter(obj.bHP, obj.aHP, xd, obj.zHP);
+           end
         end
         
-        function UpdatePreset(obj)
-            obj.preset = Preset.Dreamy;
-            %Delay Base delay (s)
-            
-            %Gain
-            obj.Gain = obj.preset.Gain;
-            
-            % Filter variables
-            obj.Fc = obj.preset.Fc;
-            obj.Q = obj.preset.Q;
-            
-            % Vibrato
-            obj.Width = obj.preset.vDepth;
-            obj.Rate = obj.preset.vRate;
-            
-            % Saturation
-            obj.Amount = obj.preset.sAmount;
-        end
         
         % output function, gets called at buffer speed
         function y = process(obj, x)
@@ -234,7 +251,7 @@ classdef Delay3 < audioPlugin
                     x(:,2) = x(:,1);
                 case GuitarEnum.NotConnected
             end
-            delayInSamples = obj.Delay*obj.pSR;
+            delayInSamples = obj.preset.Delay*obj.pSR;
             
             % Delay the input
             xd = obj.pFractionalDelay(delayInSamples, x);
@@ -244,8 +261,8 @@ classdef Delay3 < audioPlugin
 
             % Calculate output by adding wet and dry signal in appropriate
             % ratio
-            mix = obj.WetDryMix;
-            y = (1-mix)*x + (mix)*(obj.Gain.*xd);
+            mix = obj.preset.Mix;
+            y = (1-mix)*x + (mix)*(obj.preset.Gain.*xd);
             
         end
     end
