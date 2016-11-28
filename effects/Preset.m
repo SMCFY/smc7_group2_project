@@ -2,38 +2,38 @@ classdef Preset < handle
     enumeration
         % Delay, Gain, Feedback, Mix, Fc, Q, vDepth, vRate, sGain, sQ, sDist, sMix,
         % DelayON, VibratoON, ReverseON, SaturationON, LPF, HPF
-        Dreamy(0.7, 1, 0.6, 0.7,... % Delay, Gain, Feedback, Mix,
+        Test1(0.7, 1, 0.6, 0.7,... % Delay, Gain, Feedback, Mix,
             5000, 1, 10, 5,...      % Fc, filter Q, vDepth, vRate,
             0.8, 1, 1, 1,...        % sGain, sQ, sDist, sMix
             1, 1, 1, 0, 0, 0)       % DelayON, VibratoON, ReverseON, SaturationON, LPFON, HPFON
         
-        Reverse(0.7, 1, 0.3, 0.4,...% Delay, Gain, Feedback, Mix,
+        Test2(0.7, 1, 0.3, 0.4,...% Delay, Gain, Feedback, Mix,
             500, 12, 10, 5,...      % Fc, filter Q, vDepth, vRate,
             0.8, 1, 10, 1,...       % sGain, sQ, sDist, sMix
             1, 0, 0, 1, 0, 0)       % DelayON, VibratoON, ReverseON, SaturationON, LPFON, HPFON
         
-        DelayOFF(0.7, 1, 0.3, 0.4,...% Delay, Gain, Feedback, Mix,
+        Test3(0.7, 1, 0.3, 0.4,...% Delay, Gain, Feedback, Mix,
             2000, 12, 12, 5,...      % Fc, filter Q, vDepth, vRate,
             1, 1, 1, 0.5,...         % sGain, sQ, sDist, sMix
             0, 1, 1, 1, 1, 1)        % DelayON, VibratoON, ReverseON, SaturationON, LPFON, HPFON
        
         % Presets for Leo 
-        Preset1(0.7, 1, 0.3, 0.4,...% Delay, Gain, Feedback, Mix,
-            2000, 12, 12, 5,...      % Fc, filter Q, vDepth, vRate,
+        Dreamy(0.3, 1, 0.5, 0.8,...% Delay, Gain, Feedback, Mix,
+            1500, 12, 9, 3,...      % Fc, filter Q, vDepth, vRate,
+            0.1, 0.1, 0.1, 0.2,...   % sGain, sQ, sDist, sMix
+            1, 1, 0, 0, 1, 0)        % DelayON, VibratoON, ReverseON, SaturationON, LPFON, HPFON
+        Wacky(0.015, 1, 0.5, 0.7,...% Delay, Gain, Feedback, Mix,
+            18000, 12, 10, 9,...      % Fc, filter Q, vDepth, vRate,
+            1, 1, 0.1, 0.5,...         % sGain, sQ, sDist, sMix
+            1, 1, 0, 0, 1, 0)        % DelayON, VibratoON, ReverseON, SaturationON, LPFON, HPFON
+        Rewinder(0.8, 1, 0.5, 0.000,...% Delay, Gain, Feedback, Mix,
+            4500, 20, 1, 1,...      % Fc, filter Q, vDepth, vRate,
             1, 1, 1, 0.5,...         % sGain, sQ, sDist, sMix
-            0, 1, 1, 1, 1, 1)        % DelayON, VibratoON, ReverseON, SaturationON, LPFON, HPFON
-        Preset2(0.7, 1, 0.3, 0.4,...% Delay, Gain, Feedback, Mix,
-            2000, 12, 12, 5,...      % Fc, filter Q, vDepth, vRate,
-            1, 1, 1, 0.5,...         % sGain, sQ, sDist, sMix
-            0, 1, 1, 1, 1, 1)        % DelayON, VibratoON, ReverseON, SaturationON, LPFON, HPFON
-        Preset3(0.7, 1, 0.3, 0.4,...% Delay, Gain, Feedback, Mix,
-            2000, 12, 12, 5,...      % Fc, filter Q, vDepth, vRate,
-            1, 1, 1, 0.5,...         % sGain, sQ, sDist, sMix
-            0, 1, 1, 1, 1, 1)        % DelayON, VibratoON, ReverseON, SaturationON, LPFON, HPFON
-        Preset4(0.7, 1, 0.3, 0.4,...% Delay, Gain, Feedback, Mix,
-            2000, 12, 12, 5,...      % Fc, filter Q, vDepth, vRate,
-            1, 1, 1, 0.5,...         % sGain, sQ, sDist, sMix
-            0, 1, 1, 1, 1, 1)        % DelayON, VibratoON, ReverseON, SaturationON, LPFON, HPFON
+            1, 0, 1, 1, 1, 0)        % DelayON, VibratoON, ReverseON, SaturationON, LPFON, HPFON
+        DirtyTape(0.2, 1, 0.5, 0.7,...% Delay, Gain, Feedback, Mix,
+            1250, 12, 8, 3,...      % Fc, filter Q, vDepth, vRate,
+            0.8, 3, 2.5, 0.5,...         % sGain, sQ, sDist, sMix
+            1, 0, 0, 1, 1, 0)        % DelayON, VibratoON, ReverseON, SaturationON, LPFON, HPFON
     end
     properties
         Delay
