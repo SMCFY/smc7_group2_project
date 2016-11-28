@@ -21,10 +21,15 @@ onsetInterval = 0;
 threshold = 30;
 temporalThreshold = 0;
 onsetDev = 0;
+count = 0;
+rate = 86;
+outputValue = 0;
+deltaY = 0;
+TEMP = [];
 % ------------------------------
 %x = [];
 tic
-while toc<50
+while toc<20
    
     mySignal = deviceReader();
     %myProcessedSignal = process(delay, mySignal);
@@ -33,10 +38,21 @@ while toc<50
     [noveltyC, XmagPrev] = detectOnset(mySignal, noveltyC, XmagPrev);
     [onsetDev, onsetInterval, curPos] = localizeOnset(noveltyC, durationInBuffers, threshold, temporalThreshold, onsetInterval, curPos, onsetDev);
     
-    %count = count + 1;
+    magSpecSum = sum(abs(fft(mySignal)));
+    
+    if mod(count, rate) == 0
+        
+        targetValue = onsetDev;
+        count = 0;
+    end 
+    
+    [outputValue] = interpol(targetValue, outputValue, rate-count, deltaY);
    
-    magSpecSum = [magSpecSum, sum(abs(fft(mySignal)))];
-    disp(onsetDev);
+    count = count + 1;
+    
+    TEMP = [TEMP outputValue];
+    
+    disp(outputValue);
     %x = [x; mySignal];
 end
 
@@ -50,8 +66,9 @@ end
 
 
 % ONSET PLOT ---------
-plot(filter([0.2, 0.2, 0.2, 0.2, 0.2], 1, noveltyC), 'g'); hold on;
-plot(magSpecSum, 'r');
+%plot(filter([0.2, 0.2, 0.2, 0.2, 0.2], 1, noveltyC), 'g'); hold on;
+%plot(magSpecSum, 'r'); hold on;
+plot(TEMP);
 legend('novelty curve', 'summed magnitude');
 % ---------------------
 %sound(x,fs);
