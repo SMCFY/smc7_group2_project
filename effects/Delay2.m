@@ -51,7 +51,13 @@ classdef Delay2 < audioPlugin
         Q = sqrt(2)/2
         
         % Saturation
-        Amount = 1
+       % sAmount = 1
+        sGain = 0.8
+        sQ  = 1
+        sDist = 3
+        sRH = 0.99
+        sRL =  0.6 
+        sMix = 0.9
         
         Width = 6;
         Rate = 5;
@@ -87,7 +93,7 @@ classdef Delay2 < audioPlugin
         PluginInterface = audioPluginInterface(...
             'InputChannels',2,...
             'OutputChannels',2,...
-            'PluginName','Delay',...
+            'PluginName','Multi-Modulation Delay Of Awesomeness',...
             'VendorName', '', ...
             'VendorVersion', '3.1.4', ...
             'UniqueId', '4pvz',...
@@ -108,8 +114,14 @@ classdef Delay2 < audioPlugin
             'DisplayName','Fc','Label','Hz','Mapping',{'log',20 20000}),...
             audioPluginParameter('Q', ...
             'DisplayName',  'Q','Mapping', { 'log', 0.1, 200}),...
-            audioPluginParameter('Amount', ...
-            'DisplayName','Saturation Amount','Mapping', { 'lin', 1, 10}),...
+            audioPluginParameter('sGain', ...
+            'DisplayName','Tube gain','Mapping', { 'lin', 0.1, 2}),...
+            audioPluginParameter('sQ', ...
+            'DisplayName','Tube Q','Mapping', { 'lin', 0.01, 10}),...
+            audioPluginParameter('sDist', ...
+            'DisplayName','Tube Distortion','Mapping', { 'lin', 0.01, 10}),...
+            audioPluginParameter('sMix', ...
+            'DisplayName','Tube Mix','Mapping', { 'lin', 0.001, 1}),...
             audioPluginParameter('Width', ...
             'DisplayName',  'Vibrato Depth','Mapping', { 'lin', 1, 20}),...
             audioPluginParameter('Rate', ...
@@ -134,6 +146,9 @@ classdef Delay2 < audioPlugin
         rBuffer
         rPointer = 1;
         
+        % 
+        sZHP = []
+        sZLP = []
         % internal state used by LP and HP filter, all zeros the initial
         % state
         z = zeros(2)
@@ -182,6 +197,8 @@ classdef Delay2 < audioPlugin
             
             % initialize internal filter state
             obj.z = zeros(2);
+%             obj.sZHP = zeros(1,2);
+%             obj.sZLP = zeros(1,2);
             [obj.b, obj.a] = highPassCoeffs(obj.Fc, obj.Q, fs);
         end
         
@@ -217,7 +234,8 @@ classdef Delay2 < audioPlugin
                     delayInSamples = obj.Delay*obj.pSR;
                     [xd, obj.rBuffer, obj.rPointer] = reverse(x, obj.rBuffer, delayInSamples, obj.rPointer);
                 case EffectEnum.Saturation
-                    xd = sat(xd, obj.Amount);
+                    % function y=tube(x, gain, Q, dist, rh, rl, mix, zHP, zLP)
+                    [xd, obj.sZHP, obj.sZLP] = tube(xd, obj.sGain, obj.sQ, obj.sDist, obj.sRH, obj.sRL, obj.sMix,obj.sZHP,obj.sZLP);
                 case EffectEnum.Nothing
             end
             
@@ -231,10 +249,18 @@ classdef Delay2 < audioPlugin
 
         end
         
-        function set.Amount(obj,Amount)
-            obj.Amount = Amount;
+        function set.sGain(obj,Amount)
+            obj.sGain = Amount;
         end
-        
+        function set.sQ(obj,Amount)
+            obj.sQ = Amount;
+        end
+        function set.sDist(obj,Amount)
+            obj.sDist = Amount;
+        end
+        function set.sMix(obj,Amount)
+            obj.sMix = Amount;
+        end
         function set.Width(obj, Width)
             obj.Width = Width;
         end
