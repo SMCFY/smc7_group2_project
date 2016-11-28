@@ -34,28 +34,28 @@ classdef Delay3 < audioPlugin
     properties
         PresetChoice = PresetEnum.Dreamy
         preset = Preset.Dreamy
-%         %Delay Base delay (s)
-%         %   Specify the base delay for echo effect as positive scalar
-%         %   value in seconds. Base delay value must be in the range between
-%         %   0 and 1 seconds. The default value of this property is 0.5.
-%         Delay 
-%         
-%         %Gain Gain of delay branch
-%         %   Specify the gain value as a positive scalar. This value must be
-%         %   in the range between 0 and 1. The default value of this
-%         %   property is 0.5.
-%         Gain
-%        
-%         % Filter variables
-%         Fc 
-%         Q 
-%         
-%         % Vibrato
-%         Width 
-%         Rate
-%         
-%         % Saturation
-%         Amount 
+        %         %Delay Base delay (s)
+        %         %   Specify the base delay for echo effect as positive scalar
+        %         %   value in seconds. Base delay value must be in the range between
+        %         %   0 and 1 seconds. The default value of this property is 0.5.
+        %         Delay
+        %
+        %         %Gain Gain of delay branch
+        %         %   Specify the gain value as a positive scalar. This value must be
+        %         %   in the range between 0 and 1. The default value of this
+        %         %   property is 0.5.
+        %         Gain
+        %
+        %         % Filter variables
+        %         Fc
+        %         Q
+        %
+        %         % Vibrato
+        %         Width
+        %         Rate
+        %
+        %         % Saturation
+        %         Amount
         
         % Mono --> Stereo switch
         Guitar = GuitarEnum.NotConnected
@@ -79,7 +79,7 @@ classdef Delay3 < audioPlugin
         %   will be 60% wet to 40% dry signal (Wet - Signal that has effect
         %   in it. Dry - Unaffected signal).  The default value of this
         %   property is 0.5.
-%         WetDryMix = 0.5
+        %         WetDryMix = 0.5
     end
     
     properties (Constant)
@@ -94,7 +94,7 @@ classdef Delay3 < audioPlugin
             'UniqueId', '4pvz',...
             audioPluginParameter('PresetChoice',...
             'DisplayName','Effect',...
-            'Mapping',{'enum','Dreamy','Reverse'}),... % switch enumerator with different states
+            'Mapping',{'enum','Dreamy','Reverse','DelayOFF','Preset1','Preset2','Preset3','Preset4'}),... % switch enumerator with different states
             audioPluginParameter('Guitar',...
             'DisplayName','Guitar','Mapping',{'enum','Not Connected','Connected'}));
     end
@@ -135,7 +135,7 @@ classdef Delay3 < audioPlugin
                 'FeedbackLevel', 0.35, ...
                 'SampleRate', fs);
             obj.pSR = fs;
-%             % Reverse
+            %             % Reverse
             obj.rBuffer = zeros(fs*2+1,2); % max delay time in samples
             UpdatePreset(obj);
         end
@@ -174,9 +174,10 @@ classdef Delay3 < audioPlugin
         end
         
         function calculateFilterCoeff(obj)
+            % Calculate Butterworth filter coefficients 
             fs = getSampleRate(obj);
             if obj.preset.HPFON
-                    [obj.bHP, obj.aHP] = highPassCoeffs(obj.preset.Fc, obj.preset.Q, fs);
+                [obj.bHP, obj.aHP] = highPassCoeffs(obj.preset.Fc, obj.preset.Q, fs);
             end
             if obj.preset.LPFON
                 [obj.bLP, obj.aLP] = lowPassCoeffs(obj.preset.Fc, obj.preset.Q, fs);
@@ -197,49 +198,67 @@ classdef Delay3 < audioPlugin
                     obj.preset = Preset.Reverse;
             end
             calculateFilterCoeff(obj);
-
-%             
-%             %Delay Base delay (s)
-%             obj.Delay = obj.preset.Delay;
-%             
-%             %Gain
-%             obj.Gain = obj.preset.Gain;
-%             
-%             % Filter variables
-%             obj.Fc = obj.preset.Fc;
-%             obj.Q = obj.preset.Q;
-%             
-%             % Vibrato
-%             obj.Width = obj.preset.vDepth;
-%             obj.Rate = obj.preset.vRate;
-%             
-%             % Saturation
-%             obj.Amount = obj.preset.sAmount;
         end
         
-        function [x, xd] = setEffect(obj, x, xd)
-            % Switch to toggle on effects/filter on dry or wet signal
-           if obj.preset.VibratoON
+        function [x, xd] = setEffect(obj, x)
+            % Function that calculates effects
+            if obj.preset.DelayON
+                delayInSamples = obj.preset.Delay*obj.pSR;
+                
+                % Delay the input
+                xd = obj.pFractionalDelay(delayInSamples, x);
+                
+                % Add effects to the delayed signal
+                if obj.preset.VibratoON
                     % Input: signal, fs, modfreq, width, buffer,bufferIndex, sineBuffer
                     % Output: vibrato, buffer, bufferIndex, Sine wave
                     % pointer
                     [xd, obj.Buffer, obj.BufferIndex, obj.sPointer] = vibrato(xd, obj.pSR, obj.preset.vRate, obj.preset.vDepth, obj.Buffer, obj.BufferIndex, obj.sPointer);
-           end
-           if obj.preset.ReverseON
+                end
+                if obj.preset.ReverseON
                     delayInSamples = obj.preset.Delay*obj.pSR;
                     [xd, obj.rBuffer, obj.rPointer] = reverse(xd, obj.rBuffer, delayInSamples, obj.rPointer);
-           end     
-           if obj.preset.SaturationON
-                    xd = sat(xd, obj.preset.sAmount);
-           end
+                end
+                if obj.preset.SaturationON
+                    % function [y,zHP,zLP]=tube(x, gain, Q, dist, rh, rl, mix,zHP, zLP)
+                    
+                    [xd,~,~] = tube(xd, obj.preset.sGain, obj.preset.sQ,obj.preset.sDist,0,0,obj.preset.sMix,0,0);
+                end
+                
+                if obj.preset.LPFON
+                    [xd,obj.zLP] = filter(obj.bLP, obj.aLP, xd, obj.zLP);
+                end
+                
+                if obj.preset.HPFON
+                    [xd,obj.zHP] = filter(obj.bHP, obj.aHP, xd, obj.zHP);
+                end
+            else
+                % Add the effects to the input signal
+                xd = x;
+                if obj.preset.VibratoON
+                    % Input: signal, fs, modfreq, width, buffer,bufferIndex, sineBuffer
+                    % Output: vibrato, buffer, bufferIndex, Sine wave
+                    % pointer
+                    [xd, obj.Buffer, obj.BufferIndex, obj.sPointer] = vibrato(xd, obj.pSR, obj.preset.vRate, obj.preset.vDepth, obj.Buffer, obj.BufferIndex, obj.sPointer);
+                end
+                if obj.preset.ReverseON
+                    delayInSamples = obj.preset.Delay*obj.pSR;
+                    [xd, obj.rBuffer, obj.rPointer] = reverse(xd, obj.rBuffer, delayInSamples, obj.rPointer);
+                end
+                if obj.preset.SaturationON
+                    % function [y,zHP,zLP]=tube(x, gain, Q, dist, rh, rl, mix,zHP, zLP)
 
-           if obj.preset.LPFON
-               [xd,obj.zLP] = filter(obj.bLP, obj.aLP, xd, obj.zLP);
-           end
-           
-           if obj.preset.HPFON
-               [xd,obj.zHP] = filter(obj.bHP, obj.aHP, xd, obj.zHP);
-           end
+                    [xd,~,~] = tube(xd, obj.preset.sGain, obj.preset.sQ,obj.preset.sDist,0,0,obj.preset.sMix,0,0);
+                end
+
+                if obj.preset.LPFON
+                    [xd,obj.zLP] = filter(obj.bLP, obj.aLP, xd, obj.zLP);
+                end
+
+                if obj.preset.HPFON
+                    [xd,obj.zHP] = filter(obj.bHP, obj.aHP, xd, obj.zHP);
+                end
+            end
         end
         
         
@@ -251,14 +270,10 @@ classdef Delay3 < audioPlugin
                     x(:,2) = x(:,1);
                 case GuitarEnum.NotConnected
             end
-            delayInSamples = obj.preset.Delay*obj.pSR;
-            
-            % Delay the input
-            xd = obj.pFractionalDelay(delayInSamples, x);
             
             % calculate effect + filter
-            [~, xd] = setEffect(obj, x, xd);
-
+            [~, xd] = setEffect(obj, x);
+            
             % Calculate output by adding wet and dry signal in appropriate
             % ratio
             mix = obj.preset.Mix;
