@@ -34,32 +34,35 @@ classdef Delay3 < audioPlugin
     properties
         PresetChoice = PresetEnum.Dreamy
         preset = Preset.Dreamy
-        %         %Delay Base delay (s)
-        %         %   Specify the base delay for echo effect as positive scalar
-        %         %   value in seconds. Base delay value must be in the range between
-        %         %   0 and 1 seconds. The default value of this property is 0.5.
-        %         Delay
-        %
-        %         %Gain Gain of delay branch
-        %         %   Specify the gain value as a positive scalar. This value must be
-        %         %   in the range between 0 and 1. The default value of this
-        %         %   property is 0.5.
-        %         Gain
-        %
-        %         % Filter variables
-        %         Fc
-        %         Q
-        %
-        %         % Vibrato
-        %         Width
-        %         Rate
-        %
-        %         % Saturation
-        %         Amount
+        %Delay Base delay (s)
+        %   Specify the base delay for echo effect as positive scalar
+        %   value in seconds. Base delay value must be in the range between
+        %   0 and 1 seconds. The default value of this property is 0.5.
+        Delay
+        
+        %Gain Gain of delay branch
+        %   Specify the gain value as a positive scalar. This value must be
+        %   in the range between 0 and 1. The default value of this
+        %   property is 0.5.
+        Gain
+        
+        Mix
+        % Filter variables
+        Fc
+        Q
+        
+        % Vibrato
+        Width
+        Rate
+        
+        % Saturation
+        sGain
+        sQ
+        sDist
+        sMix
         
         % Mono --> Stereo switch
         Guitar = GuitarEnum.NotConnected
-        
     end
     
     properties (Dependent)
@@ -210,6 +213,39 @@ classdef Delay3 < audioPlugin
             calculateFilterCoeff(obj);
         end
         
+        %interpolation
+        
+        %switch case
+        function addAdaptive(obj,x)
+            switch obj.preset
+                case Preset.Dreamy
+                    %Extract audio features
+                    E = sum(energyLevel(x(:,1)',1));
+                    
+                    %add additional feature extractions here
+                    %C = centroid()
+                    %IOID = 
+                    
+                    %Map raw feature data to ranges for the control
+                    %parameters
+                    obj.sQ = mapRange(10,obj.preset.sQ,1000,0,E);
+                    disp(obj.sQ);
+                case Preset.Reverse
+                    %Extract audio features
+                    E = sum(energyLevel(x(:,1)',1));
+                    disp(E);
+                    %add additional feature extractions here
+                    %C = centroid()
+                    %IOID = 
+                    
+                    %Map raw feature data to ranges for the control
+                    %parameters
+                    
+            end
+        end
+   
+       
+        
         function [x, xd] = setEffect(obj, x)
             % Function that calculates effects
             if obj.preset.DelayON
@@ -258,7 +294,7 @@ classdef Delay3 < audioPlugin
                 if obj.preset.SaturationON
                     % function [y,zHP,zLP]=tube(x, gain, Q, dist, rh, rl, mix,zHP, zLP)
 
-                    [xd,~,~] = tube(xd, obj.preset.sGain, obj.preset.sQ,obj.preset.sDist,0,0,obj.preset.sMix,0,0);
+                    [xd,~,~] = tube(xd, obj.preset.sGain, obj.sQ,obj.preset.sDist,0,0,obj.preset.sMix,0,0);
                 end
 
                 if obj.preset.LPFON
@@ -280,7 +316,7 @@ classdef Delay3 < audioPlugin
                     x(:,2) = x(:,1);
                 case GuitarEnum.NotConnected
             end
-            
+            addAdaptive(obj,x)
             % calculate effect + filter
             [~, xd] = setEffect(obj, x);
             
