@@ -1,76 +1,48 @@
 deviceReader = audioDeviceReader;
-%deviceReader = dsp.AudioFileReader('/Users/Geri/Documents/MATLAB/sp/sound_files/Gregorythme_SOOML.mp3');
+%deviceReader = dsp.AudioFileReader('Dude.wav');
 deviceWriter = audioDeviceWriter('SampleRate',deviceReader.SampleRate);
-deviceReader.SamplesPerFrame = 256;
+deviceReader.SamplesPerFrame = 64;
+
+fs = deviceReader.SampleRate;
+% setup for soundcard, soundcard = 1, if a soundcard is attached.
+soundcard = 0;
+if(soundcard)
+    d = deviceReader.getAudioDevices
+    deviceReader.Device = d{3}     % set soundcard as default 
+end
 
 delay = Delay2();
 disp('Begin Signal Input...')
-fs = deviceReader.SampleRate;
-%runTime = 5; % run time in seconds
-bufferSize = deviceReader.SamplesPerFrame;
-%count = 0;
-%onsetBuffer = zeros(runTime*fs,1);
 
-% ONSET TEST PARAMS -----------
-XmagPrev = zeros(256,1);
-durationInBuffers = round(5*fs/bufferSize); % 5 seconds
-noveltyC = [];
-magSpecSum = [];
-curPos = 1;
-onsetInterval = 0;
-threshold = 30;
-temporalThreshold = 0;
-onsetDev = 0;
+% initialize the centroid and delta with 'bogus' values
+C_new = -1;
+C_old = -1;
+% delta is the amount the delay changes with 
+% each new calculated centroid value
+delta = -1; 
+% initialize a counter for the intperpolator
 count = 0;
-rate = 86;
-outputValue = 0;
-deltaY = 0;
-TEMP = [];
-% ------------------------------
-%x = [];
+% store all consecutive delay values (used for testing)
+dtime = [];
+
 tic
-while toc<20
+while toc<25
    
     mySignal = deviceReader();
-    %myProcessedSignal = process(delay, mySignal);
-   % deviceWriter(myProcessedSignal);
+    myProcessedSignal = process(delay, mySignal);
+    deviceWriter(myProcessedSignal);
     
-    [noveltyC, XmagPrev] = detectOnset(mySignal, noveltyC, XmagPrev);
-    [onsetDev, onsetInterval, curPos] = localizeOnset(noveltyC, durationInBuffers, threshold, temporalThreshold, onsetInterval, curPos, onsetDev);
+    % Adaptive part with some mapping 
+    % use the interpolator to smooth out centroid-to-delay mapping
+    [delay.Delay count C_old C_new delta] = interpolator(delay.Delay,mySignal, C_old,C_new, count, delta);
     
-    magSpecSum = sum(abs(fft(mySignal)));
+    % keeping track of all the calculated delay values (for testing purposes)
+    dtime = [dtime delay.Delay];
     
-    if mod(count, rate) == 0
-        
-        targetValue = onsetDev;
-        count = 0;
-    end 
+    E = sum(energyLevel(mySignal',1));
+    disp(E);
     
-    [outputValue] = interpol(targetValue, outputValue, rate-count, deltaY);
-   
-    count = count + 1;
-    
-    TEMP = [TEMP outputValue];
-    
-    disp(outputValue);
-    %x = [x; mySignal];
 end
 
-%amountOfOnsets = sum(onsetBuffer);
-%onsetBuffer = onsetBuffer(1:count*bufferSize);
-%t = sprintf('Amount of onsets detected: %d', sum(onsetBuffer));
-%disp(t)
-%runTime = (count*bufferSize)/fs
-%t = sprintf('run time in seconds: %1f', (count*bufferSize)/fs);
-%disp(t)
-
-
-% ONSET PLOT ---------
-%plot(filter([0.2, 0.2, 0.2, 0.2, 0.2], 1, noveltyC), 'g'); hold on;
-%plot(magSpecSum, 'r'); hold on;
-plot(TEMP);
-legend('novelty curve', 'summed magnitude');
-% ---------------------
-%sound(x,fs);
 release(deviceReader)
 release(deviceWriter)
