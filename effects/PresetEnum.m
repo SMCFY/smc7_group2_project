@@ -1,11 +1,11 @@
 classdef PresetEnum < int8
     enumeration   
-        Dreamy (0)
-        Reverse  (1) 
-        DelayOFF (2)
-        Preset1 (3)
-        Preset2 (4)
-        Preset3 (5)
-        Preset4 (6)
+        Test1     (0)
+        Test2     (1) 
+        Test3     (2)
+        Dreamy    (3)
+        Wacky     (4)
+        Rewinder  (5)
+        DirtyTape (6)
     end
 end

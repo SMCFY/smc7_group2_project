@@ -192,10 +192,20 @@ classdef Delay3 < audioPlugin
         function UpdatePreset(obj)
             
             switch obj.PresetChoice
+                case PresetEnum.Test1
+                    obj.preset = Preset.Test1;
+                case PresetEnum.Test2
+                    obj.preset = Preset.Test2;
+                case PresetEnum.Test3
+                    obj.preset = Preset.Test3;
                 case PresetEnum.Dreamy
                     obj.preset = Preset.Dreamy;
-                case PresetEnum.Reverse
-                    obj.preset = Preset.Reverse;
+                case PresetEnum.Wacky
+                    obj.preset = Preset.Wacky;
+                case PresetEnum.Rewinder
+                    obj.preset = Preset.Rewinder;
+                case PresetEnum.DirtyTape
+                    obj.preset = Preset.DirtyTape;
             end
             calculateFilterCoeff(obj);
         end
