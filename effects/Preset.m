@@ -10,7 +10,7 @@ classdef Preset < handle
         Test2(0.7, 1, 0.3, 0.4,...% Delay, Gain, Feedback, Mix,
             500, 12, 10, 5,...      % Fc, filter Q, vDepth, vRate,
             0.8, 1, 10, 1,...       % sGain, sQ, sDist, sMix
-            1, 0, 0, 1, 0, 0)       % DelayON, VibratoON, ReverseON, SaturationON, LPFON, HPFON
+            0, 0, 0, 1, 0, 0)       % DelayON, VibratoON, ReverseON, SaturationON, LPFON, HPFON
         
         Test3(0.7, 1, 0.3, 0.4,...% Delay, Gain, Feedback, Mix,
             2000, 12, 12, 5,...      % Fc, filter Q, vDepth, vRate,
