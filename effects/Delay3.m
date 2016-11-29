@@ -320,15 +320,42 @@ classdef Delay3 < audioPlugin
                     %parameters
                     %disp(obj.sQ);
                 case Preset.Wacky
+                    %Extract audio features
+                    onset(obj, x); % obj.onsetOutput stores the onset deviation in 5*fs/frameSize
+                    pitch(obj,x); % obj.Pitch
+                    obj.FeedbackLevel = mapRange(0.7,0.3,500,80,obj.Pitch);
+                    obj.vRate = mapRange(11,8,1,0.1,obj.onsetOutput);
                     if obj.calAdaptive > obj.adaptiveCount
                         obj.adaptiveCount = 0;
                         E = sum(energyLevel(x(:,1)',1));
                         C = centroid(x');
-                        obj.vDepth = mapRange(30,obj.preset.vDepth,1000,0,E);
-                        obj.vRate = mapRange(14,obj.preset.vRate,1,0,C);
+                        obj.Mix = mapRange(0.9,0.6,1,0,E);
+                        obj.FeedbackLevel = mapRange(0.9,0.5,1,0,C);
                     end
                 case Preset.Rewinder
+                    %Extract audio features
+                    onset(obj, x); % obj.onsetOutput stores the onset deviation in 5*fs/frameSize
+                    pitch(obj,x); % obj.Pitch
+                    obj.Q = mapRange(45,3,500,80,obj.Pitch);
+                    if obj.calAdaptive > obj.adaptiveCount
+                        obj.adaptiveCount = 0;
+                        E = sum(energyLevel(x(:,1)',1));
+                        C = centroid(x');
+                        obj.Fc = mapRange(20000,3000,0.5,1,C);
+                        obj.FeedbackLevel = mapRange(0.9,0.3,1,0,E);
+                    end
                 case Preset.DirtyTape
+                    %Extract audio features
+                    onset(obj, x); % obj.onsetOutput stores the onset deviation in 5*fs/frameSize
+                    pitch(obj,x); % obj.Pitch
+                    obj.FeedbackLevel = mapRange(0.8,0.3,500,80,obj.Pitch);
+                    if obj.calAdaptive > obj.adaptiveCount
+                        obj.adaptiveCount = 0;
+                        E = sum(energyLevel(x(:,1)',1));
+                        C = centroid(x');
+                        obj.sDist = mapRange(7,3,1,0,E);
+                        obj.vRate = mapRange(4,1,1,0,C);
+                    end
             end
             obj.adaptiveCount = obj.adaptiveCount + 1;
         end
