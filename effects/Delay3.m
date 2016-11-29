@@ -147,6 +147,14 @@ classdef Delay3 < audioPlugin
         onsetOutput = 0;
         deltaY = 0;
         %TEMP = [];
+        
+        % --------------
+        % Pitch 
+        pitchCount = 0;
+        pitchBuffer = [];
+        pitchBufferSize = 5;
+        Pitch = 0;
+        
     end
     
     methods
@@ -161,7 +169,8 @@ classdef Delay3 < audioPlugin
             obj.rBuffer = zeros(fs*2+1,2); % max delay time in samples
             
             obj.durationInBuffers = 5*fs;
-
+            
+            
             
             UpdatePreset(obj);
         end
@@ -197,6 +206,31 @@ classdef Delay3 < audioPlugin
             obj.zHP = zeros(2); obj.zLP = zeros(2);
             [obj.bHP, obj.aHP] = highPassCoeffs(obj.preset.Fc, obj.preset.Q, fs);
             [obj.bLP, obj.aLP] = lowPassCoeffs(obj.preset.Fc, obj.preset.Q, fs);
+            
+            %--------------------
+            % Adaptive variable
+            obj.FFTBuffer = 0;
+            obj.durationInBuffers = 5*fs;
+            obj.noveltyC = [];
+            obj.onsetTarget = 0;
+            %magSpecSum = [];
+            obj.curPos = 1;
+            obj.onsetInterval = 0;
+            obj.threshold = 30;
+            obj.temporalThreshold = 0;
+            obj.onsetDev = 0;
+            obj.detectionCount = 0;
+            obj.detectionRate = 86;
+            obj.onsetOutput = 0;
+            obj.deltaY = 0;
+            %TEMP = [];
+
+            % --------------
+            % Pitch 
+            obj.pitchCount = 0;
+            obj.pitchBuffer = [];
+            obj.pitchBufferSize = 5;
+            obj.Pitch = 0;
         end
         
         function calculateFilterCoeff(obj)
@@ -255,7 +289,20 @@ classdef Delay3 < audioPlugin
            obj.detectionCount = obj.detectionCount + 1;
            
         end
-        
+        function pitch(obj, x)
+            if obj.pitchCount == obj.pitchBufferSize
+               obj.pitchCount = 0;
+                obj.pitchBuffer = [];
+            else
+                obj.pitchBuffer = [obj.pitchBuffer; x];
+            end
+            obj.pitchCount = obj.pitchCount + 1;
+            
+            if mod(obj.pitchCount,obj.pitchBufferSize) == obj.pitchBufferSize-1
+                obj.Pitch = pitch_detector(obj.pitchBuffer, obj.pSR);
+                disp(obj.Pitch)
+            end
+        end
         %Adaptive mapping function. 
         function addAdaptive(obj,x)
             switch obj.preset
@@ -264,7 +311,8 @@ classdef Delay3 < audioPlugin
                     E = sum(energyLevel(x(:,1)',1));
                     C = centroid(x');
                     onset(obj, x); % obj.onsetOutput stores the onset deviation in 5*fs/frameSize
-
+                    pitch(obj,x)
+                    
                     %Map raw feature data to ranges for the control
                     %parameters
                     obj.sQ = mapRange(10,obj.preset.sQ,1000,0,E);
