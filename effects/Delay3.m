@@ -52,8 +52,8 @@ classdef Delay3 < audioPlugin
         Q
         
         % Vibrato
-        Width
-        Rate
+        vDepth
+        vRate
         
         % Saturation
         sGain
@@ -131,6 +131,10 @@ classdef Delay3 < audioPlugin
         
         %---------------------------
         % Adaptive variables 
+        calAdaptive = 20; % amount of frames before calculate a new variable
+           
+        adaptiveCount = 0;
+        
         % ONSET TEST PARAMS -----------
         FFTBuffer = 0;
         durationInBuffers
@@ -169,9 +173,7 @@ classdef Delay3 < audioPlugin
             obj.rBuffer = zeros(fs*2+1,2); % max delay time in samples
             
             obj.durationInBuffers = 5*fs;
-            
-            
-            
+
             UpdatePreset(obj);
         end
         
@@ -209,6 +211,9 @@ classdef Delay3 < audioPlugin
             
             %--------------------
             % Adaptive variable
+            obj.adaptiveCount = 0;
+            
+            % Onset
             obj.FFTBuffer = 0;
             obj.durationInBuffers = 5*fs;
             obj.noveltyC = [];
@@ -235,12 +240,11 @@ classdef Delay3 < audioPlugin
         
         function calculateFilterCoeff(obj)
             % Calculate Butterworth filter coefficients 
-            fs = getSampleRate(obj);
             if obj.preset.HPFON
-                [obj.bHP, obj.aHP] = highPassCoeffs(obj.preset.Fc, obj.preset.Q, fs);
+                [obj.bHP, obj.aHP] = highPassCoeffs(obj.Fc, obj.Q, obj.pSR);
             end
             if obj.preset.LPFON
-                [obj.bLP, obj.aLP] = lowPassCoeffs(obj.preset.Fc, obj.preset.Q, fs);
+                [obj.bLP, obj.aLP] = lowPassCoeffs(obj.Fc, obj.Q, obj.pSR);
             end
         end
         
@@ -267,6 +271,24 @@ classdef Delay3 < audioPlugin
                 case PresetEnum.DirtyTape
                     obj.preset = Preset.DirtyTape;
             end
+            obj.Delay = obj.preset.Delay;
+            obj.Gain = obj.preset.Gain;
+            
+            obj.Mix = obj.preset.Mix;
+            % Filter variables
+            obj.Fc = obj.preset.Fc;
+            obj.Q = obj.preset.Q;
+
+            % Vibrato
+            obj.vDepth = obj.preset.vDepth;
+            obj.vRate = obj.preset.vRate;
+
+            % Saturation
+            obj.sGain = obj.preset.sGain;
+            obj.sQ = obj.preset.sQ;
+            obj.sDist = obj.preset.sDist;
+            obj.sMix = obj.preset.sMix;
+
             calculateFilterCoeff(obj);
         end
         
@@ -289,6 +311,7 @@ classdef Delay3 < audioPlugin
            obj.detectionCount = obj.detectionCount + 1;
            
         end
+        
         function pitch(obj, x)
             if obj.pitchCount == obj.pitchBufferSize
                obj.pitchCount = 0;
@@ -300,43 +323,49 @@ classdef Delay3 < audioPlugin
             
             if mod(obj.pitchCount,obj.pitchBufferSize) == obj.pitchBufferSize-1
                 obj.Pitch = pitch_detector(obj.pitchBuffer, obj.pSR);
-                disp(obj.Pitch)
+                %disp(obj.Pitch)
             end
         end
         %Adaptive mapping function. 
         function addAdaptive(obj,x)
+            %obj.adaptiveCount = 0;
             switch obj.preset
                 case Preset.Dreamy
                     %Extract audio features
-                    E = sum(energyLevel(x(:,1)',1));
-                    C = centroid(x');
+                    
                     onset(obj, x); % obj.onsetOutput stores the onset deviation in 5*fs/frameSize
-                    pitch(obj,x)
-                    
+                    pitch(obj,x); % obj.Pitch
+                    obj.Delay = mapRange(1,obj.preset.Delay,1,0,obj.onsetOutput);
+                    obj.Fc = mapRange(5000,obj.preset.Fc,500,0,obj.Pitch);
+                    obj.Q = mapRange(50,obj.preset.Q,500,0,obj.Pitch);
+                    calculateFilterCoeff(obj);
+                    if obj.calAdaptive > obj.adaptiveCount
+                        obj.adaptiveCount = 0;
+                        E = sum(energyLevel(x(:,1)',1));
+                        C = centroid(x');
+                        obj.vDepth = mapRange(7,obj.preset.vDepth,1000,0,E);
+                        obj.vRate = mapRange(8,obj.preset.vRate,1,0,C);
+                    end
                     %Map raw feature data to ranges for the control
                     %parameters
-                    obj.sQ = mapRange(10,obj.preset.sQ,1000,0,E);
                     %disp(obj.sQ);
-                case Preset.Reverse
-                    %Extract audio features
-                    E = sum(energyLevel(x(:,1)',1));
-                    disp(E);
-                    %add additional feature extractions here
-                    %C = centroid()
-                    %IOID = 
-                    
-                    %Map raw feature data to ranges for the control
-                    %parameters
+                case Preset.Wacky
+                    if obj.calAdaptive > obj.adaptiveCount
+                        obj.adaptiveCount = 0;
+                        E = sum(energyLevel(x(:,1)',1));
+                        C = centroid(x');
+                        obj.vDepth = mapRange(30,obj.preset.vDepth,1000,0,E);
+                        obj.vRate = mapRange(14,obj.preset.vRate,1,0,C);
+                    end
                     
             end
+            obj.adaptiveCount = obj.adaptiveCount + 1;
         end
-   
-       
         
         function [x, xd] = setEffect(obj, x)
             % Function that calculates effects
             if obj.preset.DelayON
-                delayInSamples = obj.preset.Delay*obj.pSR;
+                delayInSamples = obj.Delay*obj.pSR;
                 
                 % Delay the input
                 xd = obj.pFractionalDelay(delayInSamples, x);
@@ -346,16 +375,16 @@ classdef Delay3 < audioPlugin
                     % Input: signal, fs, modfreq, width, buffer,bufferIndex, sineBuffer
                     % Output: vibrato, buffer, bufferIndex, Sine wave
                     % pointer
-                    [xd, obj.Buffer, obj.BufferIndex, obj.sPointer] = vibrato(xd, obj.pSR, obj.preset.vRate, obj.preset.vDepth, obj.Buffer, obj.BufferIndex, obj.sPointer);
+                    [xd, obj.Buffer, obj.BufferIndex, obj.sPointer] = vibrato(xd, obj.pSR, obj.vRate, obj.vDepth, obj.Buffer, obj.BufferIndex, obj.sPointer);
                 end
                 if obj.preset.ReverseON
-                    delayInSamples = obj.preset.Delay*obj.pSR;
+                    delayInSamples = obj.Delay*obj.pSR;
                     [xd, obj.rBuffer, obj.rPointer] = reverse(xd, obj.rBuffer, delayInSamples, obj.rPointer);
                 end
                 if obj.preset.SaturationON
                     % function [y,zHP,zLP]=tube(x, gain, Q, dist, rh, rl, mix,zHP, zLP)
                     
-                    [xd,~,~] = tube(xd, obj.preset.sGain, obj.preset.sQ,obj.preset.sDist,0,0,obj.preset.sMix,0,0);
+                    [xd,~,~] = tube(xd, obj.sGain, obj.sQ, obj.sDist, 0,0, obj.sMix, 0,0);
                 end
                 
                 if obj.preset.LPFON
@@ -372,16 +401,16 @@ classdef Delay3 < audioPlugin
                     % Input: signal, fs, modfreq, width, buffer,bufferIndex, sineBuffer
                     % Output: vibrato, buffer, bufferIndex, Sine wave
                     % pointer
-                    [xd, obj.Buffer, obj.BufferIndex, obj.sPointer] = vibrato(xd, obj.pSR, obj.preset.vRate, obj.preset.vDepth, obj.Buffer, obj.BufferIndex, obj.sPointer);
+                    [xd, obj.Buffer, obj.BufferIndex, obj.sPointer] = vibrato(xd, obj.pSR, obj.vRate, obj.vDepth, obj.Buffer, obj.BufferIndex, obj.sPointer);
                 end
                 if obj.preset.ReverseON
-                    delayInSamples = obj.preset.Delay*obj.pSR;
+                    delayInSamples = obj.Delay*obj.pSR;
                     [xd, obj.rBuffer, obj.rPointer] = reverse(xd, obj.rBuffer, delayInSamples, obj.rPointer);
                 end
                 if obj.preset.SaturationON
                     % function [y,zHP,zLP]=tube(x, gain, Q, dist, rh, rl, mix,zHP, zLP)
 
-                    [xd,~,~] = tube(xd, obj.preset.sGain, obj.sQ,obj.preset.sDist,0,0,obj.preset.sMix,0,0);
+                    [xd,~,~] = tube(xd, obj.sGain, obj.sQ, obj.sDist,0,0, obj.sMix,0,0);
                 end
 
                 if obj.preset.LPFON
@@ -408,9 +437,8 @@ classdef Delay3 < audioPlugin
             
             % Calculate output by adding wet and dry signal in appropriate
             % ratio
-            mix = obj.preset.Mix;
-            y = (1-mix)*x + (mix)*(obj.preset.Gain.*xd);
-            
+            mix = obj.Mix;
+            y = (1-mix)*x + (mix)*(obj.Gain.*xd); 
         end
     end
 end
