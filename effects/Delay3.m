@@ -1,36 +1,7 @@
 classdef Delay3 < audioPlugin
-    % DELAY2
-    %           The effect delays the input signal from 0 - 1 second.
-    %           Works in real-time and can generate an audio-plugin
-    %           by using built-in functions from audio system toolbox
-    % Input
-    %           Delay: returns the delaytime in seconds
-    %           Gain: Amplitude of the delayed signal, 0-1
-    %           Feedback: how much of the delayed signal is feeded back into the
-    %           effect. This should not be over 0.9 due to stability.
-    %           Wet/Dry: How much of the original signal (dry ) and
-    %           delayed signal (wet) is present in the out. Can mixed between 0-1.
-    %           At 0 only the dry signal is present, at 1 the output is completely wet.
-    % Effects
-    
-    %           Vibrato:
-    %           Adds vibrato to the delayed signal. Can be controlled through
-    %           'Vibrate Rate' and 'Vibrato Depth'
-    %
-    %           Reverse:
-    %           Reverses the delayed signal.
-    %
-    %           Saturation:
-    %           Distorts the delayed signal. The amount of distortion can be
-    %           controlled with 'Saturation Amount'
-    %
-    %           HighPass and LowPass Filter:
-    %           You can add a highpass or a lowpass filter to the delayed
-    %           signal. The cutoff frequency can be controlled with the parameter Fc, and the
-    %           quality of the filter can be controlled with Q.
-    %
-    %           Effects to implemented: Reverb?, grainular
-    %           delay.
+    % DELAY3
+    % Adaptive digital delay/modulation effect
+ 
     properties
         PresetChoice = PresetEnum.Dreamy
         preset = Preset.Dreamy
@@ -63,6 +34,7 @@ classdef Delay3 < audioPlugin
         
         % Mono --> Stereo switch
         Guitar = GuitarEnum.NotConnected
+        Adaptive = AdaptiveEnum.ON
     end
     
     properties (Dependent)
@@ -90,7 +62,9 @@ classdef Delay3 < audioPlugin
             'UniqueId', '4pvz',...
             audioPluginParameter('PresetChoice',...
             'DisplayName','Effect',...
-            'Mapping',{'enum','Test1','Test2','Test3','Dreamy','Wacky','Rewinder','DirtyTape'}),... % switch enumerator with different states
+            'Mapping',{'enum','Dreamy','Wacky','Rewinder','DirtyTape'}),... % switch enumerator with different states
+            audioPluginParameter('Adaptive',...
+            'DisplayName','Adaptive','Mapping',{'enum','OFF','ON'}),...
             audioPluginParameter('Guitar',...
             'DisplayName','Guitar','Mapping',{'enum','Not Connected','Connected'}));
     end
@@ -246,15 +220,14 @@ classdef Delay3 < audioPlugin
             UpdatePreset(obj);
         end
         
+        function set.Adaptive(obj, adap)
+            obj.Adaptive = adap;
+            UpdatePreset(obj);
+        end
+        
         function UpdatePreset(obj)
             
             switch obj.PresetChoice
-                case PresetEnum.Test1
-                    obj.preset = Preset.Test1;
-                case PresetEnum.Test2
-                    obj.preset = Preset.Test2;
-                case PresetEnum.Test3
-                    obj.preset = Preset.Test3;
                 case PresetEnum.Dreamy
                     obj.preset = Preset.Dreamy;
                 case PresetEnum.Wacky
@@ -264,6 +237,7 @@ classdef Delay3 < audioPlugin
                 case PresetEnum.DirtyTape
                     obj.preset = Preset.DirtyTape;
             end
+            
             obj.Delay = obj.preset.Delay;
             obj.Gain = obj.preset.Gain;
             obj.FeedbackLevel = obj.preset.Feedback;
@@ -325,7 +299,6 @@ classdef Delay3 < audioPlugin
             switch obj.preset
                 case Preset.Dreamy
                     %Extract audio features
-                    
                     onset(obj, x); % obj.onsetOutput stores the onset deviation in 5*fs/frameSize
                     pitch(obj,x); % obj.Pitch
                     obj.Mix = mapRange(0.6,0.4,500,80,obj.Pitch);
@@ -337,7 +310,7 @@ classdef Delay3 < audioPlugin
                         obj.adaptiveCount = 0;
                         E = energyLevel(x(:,1)',1);
                         C = centroid(x');
-                        %disp(E);
+                        disp(round(C/(obj.pSR/2) * 1e1)/1e1);
                         obj.FeedbackLevel = mapRange(0.8,0.3,0.7,0.5,C);
                         obj.Fc = mapRange(1500,500,1,0,E);
                         calculateFilterCoeff(obj);
@@ -353,7 +326,8 @@ classdef Delay3 < audioPlugin
                         obj.vDepth = mapRange(30,obj.preset.vDepth,1000,0,E);
                         obj.vRate = mapRange(14,obj.preset.vRate,1,0,C);
                     end
-                    
+                case Preset.Rewinder
+                case Preset.DirtyTape
             end
             obj.adaptiveCount = obj.adaptiveCount + 1;
         end
@@ -374,7 +348,7 @@ classdef Delay3 < audioPlugin
                     [xd, obj.Buffer, obj.BufferIndex, obj.sPointer] = vibrato(xd, obj.pSR, obj.vRate, obj.vDepth, obj.Buffer, obj.BufferIndex, obj.sPointer);
                 end
                 if obj.preset.ReverseON
-                    delayInSamples = obj.Delay*obj.pSR;
+                    %delayInSamples = obj.Delay*obj.pSR;
                     [xd, obj.rBuffer, obj.rPointer] = reverse(xd, obj.rBuffer, delayInSamples, obj.rPointer);
                 end
                 if obj.preset.SaturationON
@@ -422,19 +396,19 @@ classdef Delay3 < audioPlugin
         
         % output function, gets called at buffer speed
         function y = process(obj, x)
-            switch obj.Guitar
-                case GuitarEnum.Connected
-                    x(:,2) = x(:,1);
-                case GuitarEnum.NotConnected
+            if obj.Guitar == GuitarEnum.Connected
+                x(:,2) = x(:,1);
             end
-            addAdaptive(obj,x)
+            if obj.Adaptive == AdaptiveEnum.ON
+                addAdaptive(obj,x)
+            end
             % calculate effect + filter
-            [~, xd] = setEffect(obj, x);
+            [x, xd] = setEffect(obj, x);
             
             % Calculate output by adding wet and dry signal in appropriate
             % ratio
             mix = obj.Mix;
-            y = (1-mix)*x + (mix)*(obj.Gain.*xd); 
+            y = (1-mix)*x + (mix)*(obj.Gain.*xd);
         end
     end
 end
