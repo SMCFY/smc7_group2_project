@@ -179,7 +179,7 @@ classdef Delay3 < audioPlugin
             [obj.bLP, obj.aLP] = lowPassCoeffs(obj.preset.Fc, obj.preset.Q, fs);
             
             %--------------------
-            % Adaptive variable
+            % Adaptive variables
             obj.adaptiveCount = 0;
             
             % Onset
@@ -306,12 +306,13 @@ classdef Delay3 < audioPlugin
                     %calculateFilterCoeff(obj);
                     %disp(obj.vRate);
                     
-                    if obj.calAdaptive > obj.adaptiveCount
+                    if obj.calAdaptive < obj.adaptiveCount
                         obj.adaptiveCount = 0;
                         E = energyLevel(x(:,1)',1);
-                        C = centroid(x');
-                        disp(round(C/(obj.pSR/2) * 1e1)/1e1);
-                        obj.FeedbackLevel = mapRange(0.8,0.3,0.7,0.5,C);
+                        C = centroid(x')/(obj.pSR/2);
+                        %disp(round(C/(obj.pSR/2) * 1e1)/1e1);
+                        disp(C)
+                        obj.FeedbackLevel = mapRange(0.8,0.3,0.8,0.5,C);
                         obj.Fc = mapRange(1500,500,1,0,E);
                         calculateFilterCoeff(obj);
                     end
@@ -366,27 +367,22 @@ classdef Delay3 < audioPlugin
                 end
             else
                 % Add the effects to the input signal
-                xd = x;
                 if obj.preset.VibratoON
                     % Input: signal, fs, modfreq, width, buffer,bufferIndex, sineBuffer
-                    % Output: vibrato, buffer, bufferIndex, Sine wave
-                    % pointer
-                    [xd, obj.Buffer, obj.BufferIndex, obj.sPointer] = vibrato(xd, obj.pSR, obj.vRate, obj.vDepth, obj.Buffer, obj.BufferIndex, obj.sPointer);
-                end
-                if obj.preset.ReverseON
-                    delayInSamples = obj.Delay*obj.pSR;
-                    [xd, obj.rBuffer, obj.rPointer] = reverse(xd, obj.rBuffer, delayInSamples, obj.rPointer);
+                    % Output: vibrato, buffer, bufferIndex, Sine wave pointer
+                    [x, obj.Buffer, obj.BufferIndex, obj.sPointer] = vibrato(x, obj.pSR, obj.vRate, obj.vDepth, obj.Buffer, obj.BufferIndex, obj.sPointer);
                 end
                 if obj.preset.SaturationON
                     % function [y,zHP,zLP]=tube(x, gain, Q, dist, rh, rl, mix,zHP, zLP)
-
-                    [xd,~,~] = tube(xd, obj.sGain, obj.sQ, obj.sDist,0,0, obj.sMix,0,0);
+                    [x,~,~] = tube(x, obj.sGain, obj.sQ, obj.sDist,0,0, obj.sMix,0,0);
                 end
-
+                if obj.preset.ReverseON
+                    delayInSamples = obj.Delay*obj.pSR;
+                    [xd, obj.rBuffer, obj.rPointer] = reverse(x, obj.rBuffer, delayInSamples, obj.rPointer);
+                end
                 if obj.preset.LPFON
                     [xd,obj.zLP] = filter(obj.bLP, obj.aLP, xd, obj.zLP);
                 end
-
                 if obj.preset.HPFON
                     [xd,obj.zHP] = filter(obj.bHP, obj.aHP, xd, obj.zHP);
                 end
