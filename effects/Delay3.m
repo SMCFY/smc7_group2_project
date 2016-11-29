@@ -223,24 +223,25 @@ classdef Delay3 < audioPlugin
                     E = sum(energyLevel(x(:,1)',1));
                     
                     %add additional feature extractions here
-                    %C = centroid()
+                    C = centroid(x')
                     %IOID = 
                     
                     %Map raw feature data to ranges for the control
                     %parameters
                     obj.sQ = mapRange(10,obj.preset.sQ,1000,0,E);
                     disp(obj.sQ);
-                case Preset.Reverse
+                case Preset.Test2
                     %Extract audio features
                     E = sum(energyLevel(x(:,1)',1));
-                    disp(E);
+                    
                     %add additional feature extractions here
-                    %C = centroid()
+                    C = centroid(x')
                     %IOID = 
                     
                     %Map raw feature data to ranges for the control
                     %parameters
-                    
+                    obj.sDist = mapRange(obj.preset.sDist,2,1000,0,E);
+                    disp(obj.sDist);
             end
         end
    
@@ -268,7 +269,7 @@ classdef Delay3 < audioPlugin
                 if obj.preset.SaturationON
                     % function [y,zHP,zLP]=tube(x, gain, Q, dist, rh, rl, mix,zHP, zLP)
                     
-                    [xd,~,~] = tube(xd, obj.preset.sGain, obj.preset.sQ,obj.preset.sDist,0,0,obj.preset.sMix,0,0);
+                    [xd,~,~] = tube(xd, obj.preset.sGain, obj.preset.sQ,obj.sDist,0,0,obj.preset.sMix,0,0);
                 end
                 
                 if obj.preset.LPFON
