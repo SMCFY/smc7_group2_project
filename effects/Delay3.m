@@ -76,13 +76,6 @@ classdef Delay3 < audioPlugin
     end
     
     properties
-        %WetDryMix Wet/dry mix
-        %   Specify the wet/dry mix ratio as a positive scalar. This value
-        %   ranges from 0 to 1. For example, for a value of 0.6, the ratio
-        %   will be 60% wet to 40% dry signal (Wet - Signal that has effect
-        %   in it. Dry - Unaffected signal).  The default value of this
-        %   property is 0.5.
-        %         WetDryMix = 0.5
     end
     
     properties (Constant)
@@ -195,6 +188,8 @@ classdef Delay3 < audioPlugin
             obj.pFractionalDelay.SampleRate = fs;
             reset(obj.pFractionalDelay);
             
+            UpdatePreset(obj);
+            
             % reset vibrato
             obj.Buffer = zeros(192001,2);
             obj.BufferIndex = 1;
@@ -218,7 +213,6 @@ classdef Delay3 < audioPlugin
             obj.durationInBuffers = 5*fs;
             obj.noveltyC = [];
             obj.onsetTarget = 0;
-            %magSpecSum = [];
             obj.curPos = 1;
             obj.onsetInterval = 0;
             obj.threshold = 30;
@@ -228,7 +222,6 @@ classdef Delay3 < audioPlugin
             obj.detectionRate = 86;
             obj.onsetOutput = 0;
             obj.deltaY = 0;
-            %TEMP = [];
 
             % --------------
             % Pitch 
@@ -273,7 +266,7 @@ classdef Delay3 < audioPlugin
             end
             obj.Delay = obj.preset.Delay;
             obj.Gain = obj.preset.Gain;
-            
+            obj.FeedbackLevel = obj.preset.Feedback;
             obj.Mix = obj.preset.Mix;
             % Filter variables
             obj.Fc = obj.preset.Fc;
@@ -314,7 +307,7 @@ classdef Delay3 < audioPlugin
         
         function pitch(obj, x)
             if obj.pitchCount == obj.pitchBufferSize
-               obj.pitchCount = 0;
+                obj.pitchCount = 0;
                 obj.pitchBuffer = [];
             else
                 obj.pitchBuffer = [obj.pitchBuffer; x];
@@ -335,16 +328,19 @@ classdef Delay3 < audioPlugin
                     
                     onset(obj, x); % obj.onsetOutput stores the onset deviation in 5*fs/frameSize
                     pitch(obj,x); % obj.Pitch
-                    obj.Delay = mapRange(1,obj.preset.Delay,1,0,obj.onsetOutput);
-                    obj.Fc = mapRange(5000,obj.preset.Fc,500,0,obj.Pitch);
-                    obj.Q = mapRange(50,obj.preset.Q,500,0,obj.Pitch);
-                    calculateFilterCoeff(obj);
+                    obj.Mix = mapRange(0.6,0.4,500,80,obj.Pitch);
+                    obj.vRate = mapRange(10,2,1,0.1,obj.onsetOutput);
+                    %calculateFilterCoeff(obj);
+                    %disp(obj.vRate);
+                    
                     if obj.calAdaptive > obj.adaptiveCount
                         obj.adaptiveCount = 0;
-                        E = sum(energyLevel(x(:,1)',1));
+                        E = energyLevel(x(:,1)',1);
                         C = centroid(x');
-                        obj.vDepth = mapRange(7,obj.preset.vDepth,1000,0,E);
-                        obj.vRate = mapRange(8,obj.preset.vRate,1,0,C);
+                        %disp(E);
+                        obj.FeedbackLevel = mapRange(0.8,0.3,0.7,0.5,C);
+                        obj.Fc = mapRange(1500,500,1,0,E);
+                        calculateFilterCoeff(obj);
                     end
                     %Map raw feature data to ranges for the control
                     %parameters

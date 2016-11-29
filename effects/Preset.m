@@ -18,7 +18,7 @@ classdef Preset < handle
             0, 1, 1, 1, 1, 1)        % DelayON, VibratoON, ReverseON, SaturationON, LPFON, HPFON
        
         % Presets for Leo 
-        Dreamy(0.3, 1, 0.5, 0.8,...% Delay, Gain, Feedback, Mix,
+        Dreamy(0.3, 0.5, 0.5, 0.8,...% Delay, Gain, Feedback, Mix,
             1500, 12, 9, 3,...      % Fc, filter Q, vDepth, vRate,
             0.1, 0.1, 0.1, 0.2,...   % sGain, sQ, sDist, sMix
             1, 1, 0, 0, 1, 0)        % DelayON, VibratoON, ReverseON, SaturationON, LPFON, HPFON
