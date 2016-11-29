@@ -128,6 +128,25 @@ classdef Delay3 < audioPlugin
         zLP = zeros(2)
         bLP = zeros(1,3)
         aLP = zeros(1,3)
+        
+        %---------------------------
+        % Adaptive variables 
+        % ONSET TEST PARAMS -----------
+        FFTBuffer = 0;
+        durationInBuffers
+        noveltyC = [];
+        onsetTarget = 0;
+        %magSpecSum = [];
+        curPos = 1;
+        onsetInterval = 0;
+        threshold = 30;
+        temporalThreshold = 0;
+        onsetDev = 0;
+        detectionCount = 0;
+        detectionRate = 86;
+        onsetOutput = 0;
+        deltaY = 0;
+        %TEMP = [];
     end
     
     methods
@@ -140,6 +159,10 @@ classdef Delay3 < audioPlugin
             obj.pSR = fs;
             %             % Reverse
             obj.rBuffer = zeros(fs*2+1,2); % max delay time in samples
+            
+            obj.durationInBuffers = 5*fs;
+
+            
             UpdatePreset(obj);
         end
         
@@ -213,7 +236,25 @@ classdef Delay3 < audioPlugin
             calculateFilterCoeff(obj);
         end
         
-        %interpolation
+        % Onset Detection
+        function onset(obj, x)
+            
+            [l,~] = size(x);
+            
+            [obj.noveltyC, obj.FFTBuffer] = detectOnset(x, obj.noveltyC, obj.FFTBuffer);
+            [obj.onsetDev, obj.onsetInterval, obj.curPos] = localizeOnset(obj.noveltyC, round(obj.durationInBuffers/l),...
+                obj.threshold, obj.temporalThreshold, obj.onsetInterval, obj.curPos, obj.onsetDev);
+            
+            if mod(obj.detectionCount, obj.detectionRate) == 0
+                obj.onsetTarget = obj.onsetDev;
+                obj.detectionCount = 0;
+            end
+            
+            [obj.onsetOutput] = interpol(obj.onsetTarget, obj.onsetOutput, obj.detectionRate-obj.detectionCount, obj.deltaY);
+           
+           obj.detectionCount = obj.detectionCount + 1;
+           
+        end
         
         %Adaptive mapping function. 
         function addAdaptive(obj,x)
@@ -221,15 +262,13 @@ classdef Delay3 < audioPlugin
                 case Preset.Dreamy
                     %Extract audio features
                     E = sum(energyLevel(x(:,1)',1));
-                    
-                    %add additional feature extractions here
-                    %C = centroid()
-                    %IOID = 
-                    
+                    C = centroid(x');
+                    onset(obj, x); % obj.onsetOutput stores the onset deviation in 5*fs/frameSize
+
                     %Map raw feature data to ranges for the control
                     %parameters
                     obj.sQ = mapRange(10,obj.preset.sQ,1000,0,E);
-                    disp(obj.sQ);
+                    %disp(obj.sQ);
                 case Preset.Reverse
                     %Extract audio features
                     E = sum(energyLevel(x(:,1)',1));
@@ -310,7 +349,6 @@ classdef Delay3 < audioPlugin
         
         % output function, gets called at buffer speed
         function y = process(obj, x)
-            
             switch obj.Guitar
                 case GuitarEnum.Connected
                     x(:,2) = x(:,1);

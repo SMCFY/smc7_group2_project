@@ -10,7 +10,7 @@ function C = centroid(x)
     w = (22050/length(X_mag))*[0:length(X_mag)-1]; %vector of bins where 0 corresponds to DC component which needs to be excluded
                                                    %TODO
     C = X_mag * w'/sum(X_mag); % centroid FUCK YEAH
-    C = C/22050;
+    %C = C/22050;
     
     %C_hz = C * fs/length(w) 
 
