@@ -23,6 +23,10 @@ Xmag = Xmag(1:length(signal)); % consider spectrum until nyquist freq
 
 if (XmagPrev>0)
     
+    % if the buffer size changes, then resample XmagPrev to match the length of Xmag
+    if(length(Xmag)-length(XmagPrev)~=0)
+	    XmagPrev = resample(XmagPrev,length(Xmag),length(XmagPrev));
+    end
     specDiff = ((Xmag-XmagPrev + abs(Xmag-XmagPrev))/2).^2; % energy of rectified spectral difference
     SF = sum(specDiff); % spectral flux
     
