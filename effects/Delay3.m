@@ -139,7 +139,7 @@ classdef Delay3 < audioPlugin
             %             % Reverse
             obj.rBuffer = zeros(fs*2+1,2); % max delay time in samples
             
-            obj.durationInBuffers = 5*fs;
+            obj.durationInBuffers = 2*fs;
 
             UpdatePreset(obj);
         end
@@ -302,23 +302,20 @@ classdef Delay3 < audioPlugin
                     %Extract audio features
                     onset(obj, x); % obj.onsetOutput stores the onset deviation in 5*fs/frameSize
                     pitch(obj,x); % obj.Pitch
-                    obj.Mix = mapRange(0.6,0.4,500,80,obj.Pitch);
-                    obj.vRate = mapRange(10,2,1,0.1,obj.onsetOutput);
+                    %obj.Mix = mapRange(0.8,0.3,600,80,obj.Pitch);
+                    %obj.vRate = mapRange(10,2,50,0.1,obj.onsetOutput);
                     %calculateFilterCoeff(obj);
-                    disp(obj.Pitch)
+                    disp(obj.onsetOutput)
                     
                     if obj.calAdaptive < obj.adaptiveCount
                         obj.adaptiveCount = 0;
                         E = energyLevel(x(:,1)',1);
-                        C = centroid(obj.adaptiveBuffer', obj.pSR);%/(obj.pSR/2);
+                        C = centroid(x(:,1)', obj.pSR);%/(obj.pSR/2);
                         %disp(round(C/(obj.pSR/2) * 1e1)/1e1);
                         %disp(C)
-                        obj.FeedbackLevel = mapRange(0.8,0.3,0.8,0.5,C);
+                        obj.FeedbackLevel = mapRange(0.8,0.3,0.08,0,C);
                         obj.Fc = mapRange(1500,500,1,0,E);
                         calculateFilterCoeff(obj);
-                        obj.adaptiveBuffer = [];
-                    else
-                        obj.adaptiveBuffer = [obj.adaptiveBuffer; x];
                     end
                     %Map raw feature data to ranges for the control
                     %parameters
