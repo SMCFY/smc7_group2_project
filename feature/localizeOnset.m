@@ -20,8 +20,8 @@ if (durationInBuffers < length(noveltyC))
     
     for i=1:length(onsetVector)
         if (onsetVector(i)>threshold && temporalThreshold<0)
-            onsetLoc(i) = 1; % store elapsed time in terms of buffers since last onset, when new onset is recorded
-            onsetDev = sum(onsetLoc); % onset rate
+            onsetLoc(i) = onsetInterval; % store elapsed time in terms of buffers since last onset, when new onset is recorded
+            onsetDev = sum(onsetLoc)/sum(sign(onsetLoc)); % average onset interval
             
             temporalThreshold = 20; % initializing temporal threshold
             onsetInterval = 0; % initializing onset interval counter
