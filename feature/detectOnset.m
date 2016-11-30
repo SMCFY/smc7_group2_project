@@ -22,6 +22,11 @@ Xmag = abs(fft(signal,2*length(signal))); %magnitude spectrum
 Xmag = Xmag(1:length(signal)); % consider spectrum until nyquist freq
 
 if (XmagPrev>0)
+    % If the frameSize changes, make sure that XmagPrev is the same size as
+    % Xmag
+    if(length(Xmag)-length(XmagPrev)~=0)
+	    XmagPrev = resample(XmagPrev,length(Xmag),length(XmagPrev));
+    end
     
     specDiff = ((Xmag-XmagPrev + abs(Xmag-XmagPrev))/2).^2; % energy of rectified spectral difference
     SF = sum(specDiff); % spectral flux

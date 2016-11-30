@@ -305,14 +305,14 @@ classdef Delay3 < audioPlugin
                     obj.Mix = mapRange(0.6,0.4,500,80,obj.Pitch);
                     obj.vRate = mapRange(10,2,1,0.1,obj.onsetOutput);
                     %calculateFilterCoeff(obj);
-                    %disp(obj.vRate);
+                    disp(obj.Pitch)
                     
                     if obj.calAdaptive < obj.adaptiveCount
                         obj.adaptiveCount = 0;
                         E = energyLevel(x(:,1)',1);
                         C = centroid(obj.adaptiveBuffer', obj.pSR);%/(obj.pSR/2);
                         %disp(round(C/(obj.pSR/2) * 1e1)/1e1);
-                        disp(C)
+                        %disp(C)
                         obj.FeedbackLevel = mapRange(0.8,0.3,0.8,0.5,C);
                         obj.Fc = mapRange(1500,500,1,0,E);
                         calculateFilterCoeff(obj);
@@ -328,13 +328,16 @@ classdef Delay3 < audioPlugin
                     onset(obj, x); % obj.onsetOutput stores the onset deviation in 5*fs/frameSize
                     pitch(obj,x); % obj.Pitch
                     obj.FeedbackLevel = mapRange(0.7,0.3,500,80,obj.Pitch);
-                    obj.vRate = mapRange(11,8,1,0.1,obj.onsetOutput);
+                    obj.vRate = mapRange(11,8,1,0.1,obj.onsetOutput);  
                     if obj.calAdaptive > obj.adaptiveCount
                         obj.adaptiveCount = 0;
                         E = sum(energyLevel(x(:,1)',1));
-                        C = centroid(x');
+                        C = centroid(x', obj.pSR);
                         obj.Mix = mapRange(0.9,0.6,1,0,E);
                         obj.FeedbackLevel = mapRange(0.9,0.5,1,0,C);
+                        obj.adaptiveBuffer = [];
+                    else
+                        obj.adaptiveBuffer = [obj.adaptiveBuffer; x];
                     end
                 case Preset.Rewinder
                     %Extract audio features
@@ -344,9 +347,12 @@ classdef Delay3 < audioPlugin
                     if obj.calAdaptive > obj.adaptiveCount
                         obj.adaptiveCount = 0;
                         E = sum(energyLevel(x(:,1)',1));
-                        C = centroid(x');
+                        C = centroid(x', obj.pSR);
                         obj.Fc = mapRange(20000,3000,0.5,1,C);
                         obj.FeedbackLevel = mapRange(0.9,0.3,1,0,E);
+                        obj.adaptiveBuffer = [];
+                    else
+                        obj.adaptiveBuffer = [obj.adaptiveBuffer; x];
                     end
                 case Preset.DirtyTape
                     %Extract audio features
@@ -356,9 +362,12 @@ classdef Delay3 < audioPlugin
                     if obj.calAdaptive > obj.adaptiveCount
                         obj.adaptiveCount = 0;
                         E = sum(energyLevel(x(:,1)',1));
-                        C = centroid(x');
+                        C = centroid(x', obj.pSR);
                         obj.sDist = mapRange(7,3,1,0,E);
                         obj.vRate = mapRange(4,1,1,0,C);
+                        obj.adaptiveBuffer = [];
+                    else
+                        obj.adaptiveBuffer = [obj.adaptiveBuffer; x];
                     end
             end
             obj.adaptiveCount = obj.adaptiveCount + 1;
