@@ -99,8 +99,8 @@ classdef Delay3 < audioPlugin
         %---------------------------
         % Adaptive variables 
         calAdaptive = 20; % amount of frames before calculate a new variable
-           
         adaptiveCount = 0;
+        adaptiveBuffer = [];
         
         % ONSET TEST PARAMS -----------
         FFTBuffer = 0;
@@ -181,6 +181,7 @@ classdef Delay3 < audioPlugin
             %--------------------
             % Adaptive variables
             obj.adaptiveCount = 0;
+            obj.adaptiveBuffer = [];
             
             % Onset
             obj.FFTBuffer = 0;
@@ -309,12 +310,15 @@ classdef Delay3 < audioPlugin
                     if obj.calAdaptive < obj.adaptiveCount
                         obj.adaptiveCount = 0;
                         E = energyLevel(x(:,1)',1);
-                        C = centroid(x')/(obj.pSR/2);
+                        C = centroid(obj.adaptiveBuffer', obj.pSR);%/(obj.pSR/2);
                         %disp(round(C/(obj.pSR/2) * 1e1)/1e1);
                         disp(C)
                         obj.FeedbackLevel = mapRange(0.8,0.3,0.8,0.5,C);
                         obj.Fc = mapRange(1500,500,1,0,E);
                         calculateFilterCoeff(obj);
+                        obj.adaptiveBuffer = [];
+                    else
+                        obj.adaptiveBuffer = [obj.adaptiveBuffer; x];
                     end
                     %Map raw feature data to ranges for the control
                     %parameters
