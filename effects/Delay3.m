@@ -138,9 +138,6 @@ classdef Delay3 < audioPlugin
         
         % --------------
         % Pitch 
-        pitchCount = 0;
-        pitchBuffer = [];
-        pitchBufferSize = 5;
         Pitch = 0;
         
     end
@@ -217,9 +214,6 @@ classdef Delay3 < audioPlugin
 
             % --------------
             % Pitch 
-            obj.pitchCount = 0;
-            obj.pitchBuffer = [];
-            obj.pitchBufferSize = 5;
             obj.Pitch = 0;
         end
         
@@ -303,20 +297,6 @@ classdef Delay3 < audioPlugin
            
         end
         
-        function pitch(obj, x)
-            if obj.pitchCount == obj.pitchBufferSize
-                obj.pitchCount = 0;
-                obj.pitchBuffer = [];
-            else
-                obj.pitchBuffer = [obj.pitchBuffer; x];
-            end
-            obj.pitchCount = obj.pitchCount + 1;
-            
-            if mod(obj.pitchCount,obj.pitchBufferSize) == obj.pitchBufferSize-1
-                obj.Pitch = pitch_detector(obj.pitchBuffer, obj.pSR);
-                %disp(obj.Pitch)
-            end
-        end
         %Adaptive mapping function. 
         function addAdaptive(obj,x)
             %obj.adaptiveCount = 0;
@@ -324,7 +304,7 @@ classdef Delay3 < audioPlugin
                 case PresetEnum.Dreamy
                     %Extract audio features
                     onset(obj, x); % obj.onsetOutput stores the onset deviation in 5*fs/frameSize
-                    pitch(obj,x); % obj.Pitch
+                    %pitch_detector(obj,x); % obj.Pitch
                     %obj.Mix = mapRange(0.8,0.3,600,80,obj.Pitch);
                     %obj.vRate = mapRange(10,2,50,0.1,obj.onsetOutput);
                     %calculateFilterCoeff(obj);
@@ -346,7 +326,7 @@ classdef Delay3 < audioPlugin
                 case PresetEnum.Wacky
                     %Extract audio features
                     onset(obj, x); % obj.onsetOutput stores the onset deviation in 5*fs/frameSize
-                    pitch(obj,x); % obj.Pitch
+                    %pitch_detector(obj,x); % obj.Pitch
                     obj.FeedbackLevel = mapRange(0.7,0.3,500,80,obj.Pitch);
                     obj.vRate = mapRange(11,8,1,0.1,obj.onsetOutput);  
                     if obj.calAdaptive > obj.adaptiveCount
@@ -359,7 +339,7 @@ classdef Delay3 < audioPlugin
                 case PresetEnum.Rewinder
                     %Extract audio features
                     onset(obj, x); % obj.onsetOutput stores the onset deviation in 5*fs/frameSize
-                    pitch(obj,x); % obj.Pitch
+                    %pitch_detector(obj,x); % obj.Pitch
                     obj.Q = mapRange(45,3,500,80,obj.Pitch);
                     if obj.calAdaptive > obj.adaptiveCount
                         obj.adaptiveCount = 0;
@@ -371,7 +351,7 @@ classdef Delay3 < audioPlugin
                 case PresetEnum.DirtyTape
                     %Extract audio features
                     onset(obj, x); % obj.onsetOutput stores the onset deviation in 5*fs/frameSize
-                    pitch(obj,x); % obj.Pitch
+                    %pitch_detector(obj,x); % obj.Pitch
                     obj.FeedbackLevel = mapRange(0.8,0.3,500,80,obj.Pitch);
                     if obj.calAdaptive > obj.adaptiveCount
                         obj.adaptiveCount = 0;
@@ -384,7 +364,7 @@ classdef Delay3 < audioPlugin
             obj.adaptiveCount = obj.adaptiveCount + 1;
         end
         
-        function [x, xd] = setEffect(obj, x)
+        function [x, xd] = setEffect(obj, x, xd)
             % Function that calculates effects
             if obj.preset.DelayON
                 delayInSamples = obj.Delay*obj.pSR;
@@ -449,8 +429,9 @@ classdef Delay3 < audioPlugin
             if obj.Adaptive == AdaptiveEnum.ON
                 addAdaptive(obj,x)
             end
-            % calculate effect + filter
-            [x, xd] = setEffect(obj, x);
+            xd = zeros(size(x));
+	    % calculate effect + filter
+            [x, xd] = setEffect(obj, x, xd);
             
             % Calculate output by adding wet and dry signal in appropriate
             % ratio

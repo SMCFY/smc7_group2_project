@@ -18,6 +18,7 @@ if sum(noveltyC) > 0            %if (durationInBuffers < length(noveltyC))
     onsetVector = noveltyC; %windowed novelty curve
     onsetVector = filter([0.2, 0.2, 0.2, 0.2, 0.2], 1, onsetVector); %smooting
 
+    onsetLoc = zeros(1,length(onsetVector));
     for i=1:length(onsetVector)
         if (onsetVector(i)>threshold && temporalThreshold<0)
             if (sum(sign(onsetLoc)==1) && length(onsetVector(i)==length(onsetVector)))
