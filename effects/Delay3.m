@@ -47,9 +47,6 @@ classdef Delay3 < audioPlugin
         
     end
     
-    properties
-    end
-    
     properties (Constant)
         % Preset class containing the preset variables
         Dreamy = Preset(0.3, 0.5, 0.5, 0.8,...  % Delay, Gain, Feedback, Mix,
@@ -352,9 +349,6 @@ classdef Delay3 < audioPlugin
                         C = centroid(x', obj.pSR);
                         obj.Mix = mapRange(0.9,0.6,1,0,E);
                         obj.FeedbackLevel = mapRange(0.9,0.5,1,0,C);
-                        obj.adaptiveBuffer = [];
-                    else
-                        obj.adaptiveBuffer = [obj.adaptiveBuffer; x];
                     end
                 case PresetEnum.Rewinder
                     %Extract audio features
@@ -367,9 +361,6 @@ classdef Delay3 < audioPlugin
                         C = centroid(x', obj.pSR);
                         obj.Fc = mapRange(20000,3000,0.5,1,C);
                         obj.FeedbackLevel = mapRange(0.9,0.3,1,0,E);
-                        obj.adaptiveBuffer = [];
-                    else
-                        obj.adaptiveBuffer = [obj.adaptiveBuffer; x];
                     end
                 case PresetEnum.DirtyTape
                     %Extract audio features
@@ -382,9 +373,6 @@ classdef Delay3 < audioPlugin
                         C = centroid(x', obj.pSR);
                         obj.sDist = mapRange(7,3,1,0,E);
                         obj.vRate = mapRange(4,1,1,0,C);
-                        obj.adaptiveBuffer = [];
-                    else
-                        obj.adaptiveBuffer = [obj.adaptiveBuffer; x];
                     end
             end
             obj.adaptiveCount = obj.adaptiveCount + 1;
