@@ -45,6 +45,7 @@ classdef Delay3 < audioPlugin
         %   0.35.
         FeedbackLevel = 0.35 % preset.Feedback
         
+        
     end
     
     properties (Constant)
@@ -119,12 +120,12 @@ classdef Delay3 < audioPlugin
         adaptiveCount = 0;
         adaptiveBuffer = [];
         
-        % ONSET TEST PARAMS -----------
-        FFTBuffer = 0;
+        % ONSET PARAMS -----------
+        
+        FFTBuffer = zeros(4096,1);
         durationInBuffers
         noveltyC = [];
         onsetTarget = 0;
-        %magSpecSum = [];
         curPos = 1;
         onsetInterval = 0;
         threshold = 30;
@@ -134,7 +135,6 @@ classdef Delay3 < audioPlugin
         detectionRate = 86;
         onsetOutput = 0;
         deltaY = 0;
-        %TEMP = [];
         
         % --------------
         % Pitch 
@@ -153,7 +153,7 @@ classdef Delay3 < audioPlugin
                 'FeedbackLevel', 0.35, ...
                 'SampleRate', fs);
             obj.pSR = fs;
-            %             % Reverse
+            % Reverse
             obj.rBuffer = zeros(fs*2+1,2); % max delay time in samples
             
             obj.durationInBuffers = 2*fs;
@@ -201,8 +201,8 @@ classdef Delay3 < audioPlugin
             obj.adaptiveBuffer = [];
             
             % Onset
-            obj.FFTBuffer = 0;
-            obj.durationInBuffers = 5*fs;
+            obj.FFTBuffer = zeros(1,2*4096);
+            obj.durationInBuffers = 2*fs;
             obj.noveltyC = [];
             obj.onsetTarget = 0;
             obj.curPos = 1;
@@ -280,16 +280,16 @@ classdef Delay3 < audioPlugin
         % Onset Detection
         function onset(obj, x)
             
-            [R,C] = size(x);
+            [L,~] = size(x);
             
             % If the bufferSize has changed
-            if length(obj.FFTBuffer) ~= R
-                obj.FFTBuffer = zeros(R,C);
-                obj.noveltyC = zeros(round(obj.durationInBuffers/R),1);
-            end
+           % if length(obj.FFTBuffer) ~= L
+                %obj.FFTBuffer = zeros(L,1);
+                obj.noveltyC = zeros(round(obj.durationInBuffers/L),1);
+           % end
             
             [obj.noveltyC, obj.FFTBuffer] = detectOnset(x, obj.noveltyC, obj.FFTBuffer);
-            [obj.onsetDev, obj.onsetInterval, obj.curPos] = localizeOnset(obj.noveltyC, round(obj.durationInBuffers/R),...
+            [obj.onsetDev, obj.onsetInterval, obj.curPos] = localizeOnset(obj.noveltyC, round(obj.durationInBuffers/L),...
                 obj.threshold, obj.temporalThreshold, obj.onsetInterval, obj.curPos, obj.onsetDev);
             
             if mod(obj.detectionCount, obj.detectionRate) == 0
