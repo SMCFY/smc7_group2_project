@@ -1,5 +1,5 @@
 classdef Preset < handle
-    enumeration
+ %   enumeration
         % Delay, Gain, Feedback, Mix, Fc, Q, vDepth, vRate, sGain, sQ, sDist, sMix,
         % DelayON, VibratoON, ReverseON, SaturationON, LPF, HPF
 %         Test1(0.7, 1, 0.6, 0.7,... % Delay, Gain, Feedback, Mix,
@@ -18,23 +18,23 @@ classdef Preset < handle
 %             0, 1, 1, 1, 1, 1)        % DelayON, VibratoON, ReverseON, SaturationON, LPFON, HPFON
        
         % Presets for Leo 
-        Dreamy(0.3, 0.5, 0.5, 0.8,...% Delay, Gain, Feedback, Mix,
-            1500, 12, 9, 3,...      % Fc, filter Q, vDepth, vRate,
-            0.1, 0.1, 0.1, 0.2,...   % sGain, sQ, sDist, sMix
-            1, 1, 0, 0, 1, 0)        % DelayON, VibratoON, ReverseON, SaturationON, LPFON, HPFON
-        Wacky(0.015, 1, 0.5, 0.7,...% Delay, Gain, Feedback, Mix,
-            18000, 12, 10, 9,...      % Fc, filter Q, vDepth, vRate,
-            1, 1, 0.1, 0.5,...         % sGain, sQ, sDist, sMix
-            1, 1, 0, 0, 1, 0)        % DelayON, VibratoON, ReverseON, SaturationON, LPFON, HPFON
-        Rewinder(0.8, 1, 0.5, 0.5,...% Delay, Gain, Feedback, Mix,
-            4500, 20, 1, 1,...      % Fc, filter Q, vDepth, vRate,
-            1, 1, 1, 0.5,...         % sGain, sQ, sDist, sMix
-            0, 0, 1, 1, 1, 0)        % DelayON, VibratoON, ReverseON, SaturationON, LPFON, HPFON
-        DirtyTape(0.2, 1, 0.5, 0.7,...% Delay, Gain, Feedback, Mix,
-            1250, 12, 8, 3,...      % Fc, filter Q, vDepth, vRate,
-            0.8, 3, 2.5, 0.5,...         % sGain, sQ, sDist, sMix
-            1, 0, 0, 1, 1, 0)        % DelayON, VibratoON, ReverseON, SaturationON, LPFON, HPFON
-    end
+%         Dreamy(0.3, 0.5, 0.5, 0.8,...% Delay, Gain, Feedback, Mix,
+%             1500, 12, 9, 3,...      % Fc, filter Q, vDepth, vRate,
+%             0.1, 0.1, 0.1, 0.2,...   % sGain, sQ, sDist, sMix
+%             1, 1, 0, 0, 1, 0)        % DelayON, VibratoON, ReverseON, SaturationON, LPFON, HPFON
+%         Wacky(0.015, 1, 0.5, 0.7,...% Delay, Gain, Feedback, Mix,
+%             18000, 12, 10, 9,...      % Fc, filter Q, vDepth, vRate,
+%             1, 1, 0.1, 0.5,...         % sGain, sQ, sDist, sMix
+%             1, 1, 0, 0, 1, 0)        % DelayON, VibratoON, ReverseON, SaturationON, LPFON, HPFON
+%         Rewinder(0.8, 1, 0.5, 0.5,...% Delay, Gain, Feedback, Mix,
+%             4500, 20, 1, 1,...      % Fc, filter Q, vDepth, vRate,
+%             1, 1, 1, 0.5,...         % sGain, sQ, sDist, sMix
+%             0, 0, 1, 1, 1, 0)        % DelayON, VibratoON, ReverseON, SaturationON, LPFON, HPFON
+%         DirtyTape(0.2, 1, 0.5, 0.7,...% Delay, Gain, Feedback, Mix,
+%             1250, 12, 8, 3,...      % Fc, filter Q, vDepth, vRate,
+%             0.8, 3, 2.5, 0.5,...         % sGain, sQ, sDist, sMix
+%             1, 0, 0, 1, 1, 0)        % DelayON, VibratoON, ReverseON, SaturationON, LPFON, HPFON
+   % end
     properties
         Delay
         Gain

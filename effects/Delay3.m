@@ -4,7 +4,7 @@ classdef Delay3 < audioPlugin
  
     properties
         PresetChoice = PresetEnum.Dreamy
-        preset = Preset.Dreamy
+        
         %Delay Base delay (s)
         %   Specify the base delay for echo effect as positive scalar
         %   value in seconds. Base delay value must be in the range between
@@ -51,6 +51,24 @@ classdef Delay3 < audioPlugin
     end
     
     properties (Constant)
+        % Preset class containing the preset variables
+        Dreamy = Preset(0.3, 0.5, 0.5, 0.8,...  % Delay, Gain, Feedback, Mix,
+                        1500, 12, 9, 3,...      % Fc, filter Q, vDepth, vRate,
+                        0.1, 0.1, 0.1, 0.2,...  % sGain, sQ, sDist, sMix
+                        1, 1, 0, 0, 1, 0);      % DelayON, VibratoON, ReverseON, SaturationON, LPFON, HPFON
+        Wacky = Preset(0.015, 1, 0.5, 0.7,...   % Delay, Gain, Feedback, Mix,
+                       18000, 12, 10, 9,...     % Fc, filter Q, vDepth, vRate,
+                       1, 1, 0.1, 0.5,...       % sGain, sQ, sDist, sMix
+                       1, 1, 0, 0, 1, 0);       % DelayON, VibratoON, ReverseON, SaturationON, LPFON, HPFON
+        Rewinder = Preset(0.8, 1, 0.5, 0.5,...  % Delay, Gain, Feedback, Mix,
+                          4500, 20, 1, 1,...    % Fc, filter Q, vDepth, vRate,
+                          1, 1, 1, 0.5,...      % sGain, sQ, sDist, sMix
+                          0, 0, 1, 1, 1, 0);    % DelayON, VibratoON, ReverseON, SaturationON, LPFON, HPFON
+        DirtyTape = Preset(0.2, 1, 0.5, 0.7,... % Delay, Gain, Feedback, Mix,
+                           1250, 12, 8, 3,...   % Fc, filter Q, vDepth, vRate,
+                           0.8, 3, 2.5, 0.5,... % sGain, sQ, sDist, sMix
+                           1, 0, 0, 1, 1, 0);   % DelayON, VibratoON, ReverseON, SaturationON, LPFON, HPFON
+        
         % audioPluginInterface manages the number of input/output channels
         % and uses audioPluginParameter to generate plugin UI parameters.
         PluginInterface = audioPluginInterface(...
@@ -70,6 +88,8 @@ classdef Delay3 < audioPlugin
     end
     
     properties (Access = private)
+        % preset holder
+        preset
         %pFractionalDelay DelayFilter object for fractional delay with
         %linear interpolation
         pFractionalDelay
@@ -140,7 +160,7 @@ classdef Delay3 < audioPlugin
             obj.rBuffer = zeros(fs*2+1,2); % max delay time in samples
             
             obj.durationInBuffers = 2*fs;
-
+            obj.preset = obj.Dreamy; 
             UpdatePreset(obj);
         end
         
@@ -230,13 +250,13 @@ classdef Delay3 < audioPlugin
             
             switch obj.PresetChoice
                 case PresetEnum.Dreamy
-                    obj.preset = Preset.Dreamy;
+                    obj.preset = obj.Dreamy;
                 case PresetEnum.Wacky
-                    obj.preset = Preset.Wacky;
+                    obj.preset = obj.Wacky;
                 case PresetEnum.Rewinder
-                    obj.preset = Preset.Rewinder;
+                    obj.preset = obj.Rewinder;
                 case PresetEnum.DirtyTape
-                    obj.preset = Preset.DirtyTape;
+                    obj.preset = obj.DirtyTape;
             end
             
             obj.Delay = obj.preset.Delay;
@@ -297,8 +317,8 @@ classdef Delay3 < audioPlugin
         %Adaptive mapping function. 
         function addAdaptive(obj,x)
             %obj.adaptiveCount = 0;
-            switch obj.preset
-                case Preset.Dreamy
+            switch obj.PresetChoice
+                case PresetEnum.Dreamy
                     %Extract audio features
                     onset(obj, x); % obj.onsetOutput stores the onset deviation in 5*fs/frameSize
                     pitch(obj,x); % obj.Pitch
@@ -320,7 +340,7 @@ classdef Delay3 < audioPlugin
                     %Map raw feature data to ranges for the control
                     %parameters
                     %disp(obj.sQ);
-                case Preset.Wacky
+                case PresetEnum.Wacky
                     %Extract audio features
                     onset(obj, x); % obj.onsetOutput stores the onset deviation in 5*fs/frameSize
                     pitch(obj,x); % obj.Pitch
@@ -336,7 +356,7 @@ classdef Delay3 < audioPlugin
                     else
                         obj.adaptiveBuffer = [obj.adaptiveBuffer; x];
                     end
-                case Preset.Rewinder
+                case PresetEnum.Rewinder
                     %Extract audio features
                     onset(obj, x); % obj.onsetOutput stores the onset deviation in 5*fs/frameSize
                     pitch(obj,x); % obj.Pitch
@@ -351,7 +371,7 @@ classdef Delay3 < audioPlugin
                     else
                         obj.adaptiveBuffer = [obj.adaptiveBuffer; x];
                     end
-                case Preset.DirtyTape
+                case PresetEnum.DirtyTape
                     %Extract audio features
                     onset(obj, x); % obj.onsetOutput stores the onset deviation in 5*fs/frameSize
                     pitch(obj,x); % obj.Pitch
