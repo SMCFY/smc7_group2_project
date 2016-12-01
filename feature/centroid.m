@@ -1,7 +1,9 @@
 function C = centroid(x,fs)
 %SPECTRAL CENTROID calculates the spectral centorid of a discrete signal
    % x = x / max(abs(x));
-    ham = hamming(length(x));
+    %ham = hamming(length(x));
+    M = length(x);
+    ham = .54 - .46*cos(2*pi*(0:M-1)'/(M-1))
     window = x.*ham'; % create a hamming window for the signal
     X = fft(window); %fast fourier transform
     X_mag = abs(X); %magnitude spectrum
