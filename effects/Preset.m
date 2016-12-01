@@ -35,7 +35,7 @@ classdef Preset < handle
 %             0.8, 3, 2.5, 0.5,...         % sGain, sQ, sDist, sMix
 %             1, 0, 0, 1, 1, 0)        % DelayON, VibratoON, ReverseON, SaturationON, LPFON, HPFON
    % end
-    properties
+    properties 
         Delay
         Gain
         Feedback

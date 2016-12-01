@@ -9,28 +9,36 @@ classdef Delay3 < audioPlugin
         %   Specify the base delay for echo effect as positive scalar
         %   value in seconds. Base delay value must be in the range between
         %   0 and 1 seconds. The default value of this property is 0.5.
-        Delay
+        Delay = 1
         
         %Gain Gain of delay branch
         %   Specify the gain value as a positive scalar. This value must be
         %   in the range between 0 and 1. The default value of this
         %   property is 0.5.
-        Gain
+        Gain = 1
         
-        Mix
+        Mix = 1
         % Filter variables
-        Fc
-        Q
+        Fc = 20
+        Q = 1
         
         % Vibrato
-        vDepth
-        vRate
+        vDepth = 1
+        vRate = 1
         
         % Saturation
-        sGain
-        sQ
-        sDist
-        sMix
+        sGain = 1
+        sQ = 1
+        sDist = 1
+        sMix = 1
+        
+        % On/Off states
+        DelayON = 0
+        VibratoON = 0
+        ReverseON = 0 
+        SaturationON = 0
+        LPFON = 0
+        HPFON = 0
         
         % Mono --> Stereo switch
         Guitar = GuitarEnum.NotConnected
@@ -87,7 +95,7 @@ classdef Delay3 < audioPlugin
     
     properties (Access = private)
         % preset holder
-        preset
+        %preset
         %pFractionalDelay DelayFilter object for fractional delay with
         %linear interpolation
         pFractionalDelay
@@ -154,7 +162,10 @@ classdef Delay3 < audioPlugin
             obj.rBuffer = zeros(fs*2+1,2); % max delay time in samples
             
             obj.durationInBuffers = 2*fs;
-            obj.preset = obj.Dreamy; 
+%             obj.preset = Preset(0.3, 0.5, 0.5, 0.8,...  % Delay, Gain, Feedback, Mix,
+%                                 1500, 12, 9, 3,...      % Fc, filter Q, vDepth, vRate,
+%                                 0.1, 0.1, 0.1, 0.2,...  % sGain, sQ, sDist, sMix
+%                                 1, 1, 0, 0, 1, 0);      % DelayON, VibratoON, ReverseON, SaturationON, LPFON, HPFON
             UpdatePreset(obj);
         end
         
@@ -189,8 +200,8 @@ classdef Delay3 < audioPlugin
             
             % initialize internal filter state
             obj.zHP = zeros(2); obj.zLP = zeros(2);
-            [obj.bHP, obj.aHP] = highPassCoeffs(obj.preset.Fc, obj.preset.Q, fs);
-            [obj.bLP, obj.aLP] = lowPassCoeffs(obj.preset.Fc, obj.preset.Q, fs);
+            [obj.bHP, obj.aHP] = highPassCoeffs(obj.Fc, obj.Q, fs);
+            [obj.bLP, obj.aLP] = lowPassCoeffs(obj.Fc, obj.Q, fs);
             
             %--------------------
             % Adaptive variables
@@ -219,10 +230,10 @@ classdef Delay3 < audioPlugin
         
         function calculateFilterCoeff(obj)
             % Calculate Butterworth filter coefficients 
-            if obj.preset.HPFON
+            if obj.HPFON
                 [obj.bHP, obj.aHP] = highPassCoeffs(obj.Fc, obj.Q, obj.pSR);
             end
-            if obj.preset.LPFON
+            if obj.LPFON
                 [obj.bLP, obj.aLP] = lowPassCoeffs(obj.Fc, obj.Q, obj.pSR);
             end
         end
@@ -241,33 +252,106 @@ classdef Delay3 < audioPlugin
             
             switch obj.PresetChoice
                 case PresetEnum.Dreamy
-                    obj.preset = obj.Dreamy;
+                    obj.Delay = obj.Dreamy.Delay;
+                    obj.Gain = obj.Dreamy.Gain;
+                    obj.FeedbackLevel = obj.Dreamy.Feedback;
+                    obj.Mix = obj.Dreamy.Mix;
+                    % Filter variables
+                    obj.Fc = obj.Dreamy.Fc;
+                    obj.Q = obj.Dreamy.Q;
+
+                    % Vibrato
+                    obj.vDepth = obj.Dreamy.vDepth;
+                    obj.vRate = obj.Dreamy.vRate;
+
+                    % Saturation
+                    obj.sGain = obj.Dreamy.sGain;
+                    obj.sQ = obj.Dreamy.sQ;
+                    obj.sDist = obj.Dreamy.sDist;
+                    obj.sMix = obj.Dreamy.sMix;
+                    obj.DelayON = obj.Dreamy.DelayON;
+                    obj.VibratoON = obj.Dreamy.VibratoON;
+                    obj.ReverseON = obj.Dreamy.ReverseON;
+                    obj.SaturationON = obj.Dreamy.SaturationON;
+                    obj.LPFON = obj.Dreamy.LPFON;
+                    obj.HPFON = obj.Dreamy.HPFON;
+        
                 case PresetEnum.Wacky
-                    obj.preset = obj.Wacky;
+                    obj.Delay = obj.Wacky.Delay;
+                    obj.Gain = obj.Wacky.Gain;
+                    obj.FeedbackLevel = obj.Wacky.Feedback;
+                    obj.Mix = obj.Wacky.Mix;
+                    % Filter variables
+                    obj.Fc = obj.Wacky.Fc;
+                    obj.Q = obj.Wacky.Q;
+
+                    % Vibrato
+                    obj.vDepth = obj.Wacky.vDepth;
+                    obj.vRate = obj.Wacky.vRate;
+
+                    % Saturation
+                    obj.sGain = obj.Wacky.sGain;
+                    obj.sQ = obj.Wacky.sQ;
+                    obj.sDist = obj.Wacky.sDist;
+                    obj.sMix = obj.Wacky.sMix;
+                    obj.DelayON = obj.Wacky.DelayON;
+                    obj.VibratoON = obj.Wacky.VibratoON;
+                    obj.ReverseON = obj.Wacky.ReverseON;
+                    obj.SaturationON = obj.Wacky.SaturationON;
+                    obj.LPFON = obj.Wacky.LPFON;
+                    obj.HPFON = obj.Wacky.HPFON;
+        
                 case PresetEnum.Rewinder
-                    obj.preset = obj.Rewinder;
+                   obj.Delay = obj.Rewinder.Delay;
+                    obj.Gain = obj.Rewinder.Gain;
+                    obj.FeedbackLevel = obj.Rewinder.Feedback;
+                    obj.Mix = obj.Rewinder.Mix;
+                    % Filter variables
+                    obj.Fc = obj.Rewinder.Fc;
+                    obj.Q = obj.Rewinder.Q;
+
+                    % Vibrato
+                    obj.vDepth = obj.Rewinder.vDepth;
+                    obj.vRate = obj.Rewinder.vRate;
+
+                    % Saturation
+                    obj.sGain = obj.Rewinder.sGain;
+                    obj.sQ = obj.Rewinder.sQ;
+                    obj.sDist = obj.Rewinder.sDist;
+                    obj.sMix = obj.Rewinder.sMix;
+                    obj.DelayON = obj.Rewinder.DelayON;
+                    obj.VibratoON = obj.Rewinder.VibratoON;
+                    obj.ReverseON = obj.Rewinder.ReverseON;
+                    obj.SaturationON = obj.Rewinder.SaturationON;
+                    obj.LPFON = obj.Rewinder.LPFON;
+                    obj.HPFON = obj.Rewinder.HPFON;
+        
                 case PresetEnum.DirtyTape
-                    obj.preset = obj.DirtyTape;
+                    obj.Delay = obj.DirtyTape.Delay;
+                    obj.Gain = obj.DirtyTape.Gain;
+                    obj.FeedbackLevel = obj.DirtyTape.Feedback;
+                    obj.Mix = obj.DirtyTape.Mix;
+                    % Filter variables
+                    obj.Fc = obj.DirtyTape.Fc;
+                    obj.Q = obj.DirtyTape.Q;
+
+                    % Vibrato
+                    obj.vDepth = obj.DirtyTape.vDepth;
+                    obj.vRate = obj.DirtyTape.vRate;
+
+                    % Saturation
+                    obj.sGain = obj.DirtyTape.sGain;
+                    obj.sQ = obj.DirtyTape.sQ;
+                    obj.sDist = obj.DirtyTape.sDist;
+                    obj.sMix = obj.DirtyTape.sMix;
+                    obj.DelayON = obj.DirtyTape.DelayON;
+                    obj.VibratoON = obj.DirtyTape.VibratoON;
+                    obj.ReverseON = obj.DirtyTape.ReverseON;
+                    obj.SaturationON = obj.DirtyTape.SaturationON;
+                    obj.LPFON = obj.DirtyTape.LPFON;
+                    obj.HPFON = obj.DirtyTape.HPFON;
+        
             end
-            
-            obj.Delay = obj.preset.Delay;
-            obj.Gain = obj.preset.Gain;
-            obj.FeedbackLevel = obj.preset.Feedback;
-            obj.Mix = obj.preset.Mix;
-            % Filter variables
-            obj.Fc = obj.preset.Fc;
-            obj.Q = obj.preset.Q;
-
-            % Vibrato
-            obj.vDepth = obj.preset.vDepth;
-            obj.vRate = obj.preset.vRate;
-
-            % Saturation
-            obj.sGain = obj.preset.sGain;
-            obj.sQ = obj.preset.sQ;
-            obj.sDist = obj.preset.sDist;
-            obj.sMix = obj.preset.sMix;
-
             calculateFilterCoeff(obj);
         end
         
@@ -366,55 +450,55 @@ classdef Delay3 < audioPlugin
         
         function [x, xd] = setEffect(obj, x, xd)
             % Function that calculates effects
-            if obj.preset.DelayON
+            if obj.DelayON
                 delayInSamples = obj.Delay*obj.pSR;
                 
                 % Delay the input
                 xd = obj.pFractionalDelay(delayInSamples, x);
                 
                 % Add effects to the delayed signal
-                if obj.preset.VibratoON
+                if obj.VibratoON
                     % Input: signal, fs, modfreq, width, buffer,bufferIndex, sineBuffer
                     % Output: vibrato, buffer, bufferIndex, Sine wave
                     % pointer
                     [xd, obj.Buffer, obj.BufferIndex, obj.sPointer] = vibrato(xd, obj.pSR, obj.vRate, obj.vDepth, obj.Buffer, obj.BufferIndex, obj.sPointer);
                 end
-                if obj.preset.ReverseON
+                if obj.ReverseON
                     %delayInSamples = obj.Delay*obj.pSR;
                     [xd, obj.rBuffer, obj.rPointer] = reverse(xd, obj.rBuffer, delayInSamples, obj.rPointer);
                 end
-                if obj.preset.SaturationON
+                if obj.SaturationON
                     % function [y,zHP,zLP]=tube(x, gain, Q, dist, rh, rl, mix,zHP, zLP)
                     
                     [xd,~,~] = tube(xd, obj.sGain, obj.sQ, obj.sDist, 0,0, obj.sMix, 0,0);
                 end
                 
-                if obj.preset.LPFON
+                if obj.LPFON
                     [xd,obj.zLP] = filter(obj.bLP, obj.aLP, xd, obj.zLP);
                 end
                 
-                if obj.preset.HPFON
+                if obj.HPFON
                     [xd,obj.zHP] = filter(obj.bHP, obj.aHP, xd, obj.zHP);
                 end
             else
                 % Add the effects to the input signal
-                if obj.preset.VibratoON
+                if obj.VibratoON
                     % Input: signal, fs, modfreq, width, buffer,bufferIndex, sineBuffer
                     % Output: vibrato, buffer, bufferIndex, Sine wave pointer
                     [x, obj.Buffer, obj.BufferIndex, obj.sPointer] = vibrato(x, obj.pSR, obj.vRate, obj.vDepth, obj.Buffer, obj.BufferIndex, obj.sPointer);
                 end
-                if obj.preset.SaturationON
+                if obj.SaturationON
                     % function [y,zHP,zLP]=tube(x, gain, Q, dist, rh, rl, mix,zHP, zLP)
                     [x,~,~] = tube(x, obj.sGain, obj.sQ, obj.sDist,0,0, obj.sMix,0,0);
                 end
-                if obj.preset.ReverseON
+                if obj.ReverseON
                     delayInSamples = obj.Delay*obj.pSR;
                     [xd, obj.rBuffer, obj.rPointer] = reverse(x, obj.rBuffer, delayInSamples, obj.rPointer);
                 end
-                if obj.preset.LPFON
+                if obj.LPFON
                     [xd,obj.zLP] = filter(obj.bLP, obj.aLP, xd, obj.zLP);
                 end
-                if obj.preset.HPFON
+                if obj.HPFON
                     [xd,obj.zHP] = filter(obj.bHP, obj.aHP, xd, obj.zHP);
                 end
             end
@@ -427,7 +511,7 @@ classdef Delay3 < audioPlugin
                 x(:,2) = x(:,1);
             end
             if obj.Adaptive == AdaptiveEnum.ON
-                addAdaptive(obj,x)
+                %addAdaptive(obj,x)
             end
             xd = zeros(size(x));
 	    % calculate effect + filter
