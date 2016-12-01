@@ -3,7 +3,8 @@ function y = wconv( x, A, L )
     %   Author: Nabin Sharma
     %   Date: 2009/03/15
     % generate the window
-    ham = hamming(length(x));
+    M = length(x);
+    ham = .54 - .46*cos(2*pi*(0:M-1)'/(M-1));
     window = A.*ham';
 
     % perform the convolution using FFT

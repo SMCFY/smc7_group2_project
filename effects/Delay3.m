@@ -209,7 +209,7 @@ classdef Delay3 < audioPlugin
             obj.adaptiveBuffer = [];
             
             % Onset
-            obj.FFTBuffer = zeros(1,2*4096);
+            obj.FFTBuffer = zeros(4096,1);
             obj.durationInBuffers = 2*fs;
             obj.noveltyC = [];
             obj.onsetTarget = 0;
@@ -511,7 +511,7 @@ classdef Delay3 < audioPlugin
                 x(:,2) = x(:,1);
             end
             if obj.Adaptive == AdaptiveEnum.ON
-                %addAdaptive(obj,x)
+                addAdaptive(obj,x)
             end
             xd = zeros(size(x));
 	    % calculate effect + filter

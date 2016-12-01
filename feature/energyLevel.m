@@ -12,6 +12,6 @@ function E = energyLevel(x,A)
 
     % enery calculation
     x2 = x.^2;
-    E = sum(wconv(x2,window,length(x)))/length(x);
+    E = real(sum(wconv(x2,window,length(x)))/length(x));
     
 end
