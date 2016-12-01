@@ -7,9 +7,9 @@ function [onsetDev, onsetInterval, curPos] = localizeOnset(noveltyC, durationInB
 % 	noveltyC - novelty curve
 %   durationInBuffers - considered period for onsets
 %	threshold - absolute treshold in SF for onset detection
-%	temporalThreshold - temporal threshold in buffers for onset detection
+%	temporalThreshold - temporal threshold in buffers for onset detection 
 %	curPos - current position in reading the novelty curve
-%
+%   
 % OUTPUT:
 %   onsetDev - IOI deviation
 %	curPos - window position on the novelty curve
@@ -17,22 +17,28 @@ function [onsetDev, onsetInterval, curPos] = localizeOnset(noveltyC, durationInB
 if (durationInBuffers < length(noveltyC))
     onsetVector = noveltyC(curPos:durationInBuffers+curPos-1); %windowed novelty curve
     onsetVector = filter([0.2, 0.2, 0.2, 0.2, 0.2], 1, onsetVector); %smooting
-    
+
     for i=1:length(onsetVector)
         if (onsetVector(i)>threshold && temporalThreshold<0)
-            onsetLoc(i) = onsetInterval; % store elapsed time in terms of buffers since last onset, when new onset is recorded
-            onsetDev = sum(onsetLoc)/sum(sign(onsetLoc)); % average inter-onset interval
+            if (sum(sign(onsetLoc)==1)&&length(onsetVector(i)==length(onsetVector)))
+              onsetLoc(i) = 1; % store elapsed time in terms of buffers since last onset, when new onset is recorded
+              onsetInterval = 0; % initializing onset interval counter
+	    else
+              onsetLoc(i) = onsetInterval; % store elapsed time in terms of buffers since last onset, when new onset is recorded
+            end
+            onsetDev = sum(onsetLoc)/sum(sign(onsetLoc)); % IOI deviation
+	    onsetDev = 1/onsetDev;
             
-            temporalThreshold = 20; % initializing temporal threshold
+			temporalThreshold = 20; % initializing temporal threshold
             onsetInterval = 0; % initializing onset interval counter
         else
             onsetLoc(i) = 0;
-            
+
             temporalThreshold = temporalThreshold - 1;
             onsetInterval = onsetInterval +1;
         end
     end
-    
+
     curPos = curPos +1; % moving the window
     
 else
@@ -40,5 +46,9 @@ else
     onsetDev = 0;
     
 end
+
+
+
+
 end
 
