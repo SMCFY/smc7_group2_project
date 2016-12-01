@@ -32,7 +32,8 @@ else
 end
 
 XmagPrev = Xmag; % storing the spectrum
-
-noveltyC = [noveltyC, SF];
+% Shift the values by one sample to make room for SF
+noveltyC(1:end-1) = noveltyC(2:end);
+noveltyC(end) = SF;
 
 end

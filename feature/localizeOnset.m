@@ -14,16 +14,16 @@ function [onsetDev, onsetInterval, curPos] = localizeOnset(noveltyC, durationInB
 %   onsetDev - IOI deviation
 %	curPos - window position on the novelty curve
 
-if (durationInBuffers < length(noveltyC))
-    onsetVector = noveltyC(curPos:durationInBuffers+curPos-1); %windowed novelty curve
+if sum(noveltyC) > 0            %if (durationInBuffers < length(noveltyC))
+    onsetVector = noveltyC; %windowed novelty curve
     onsetVector = filter([0.2, 0.2, 0.2, 0.2, 0.2], 1, onsetVector); %smooting
 
     for i=1:length(onsetVector)
         if (onsetVector(i)>threshold && temporalThreshold<0)
-            if (sum(sign(onsetLoc)==1)&&length(onsetVector(i)==length(onsetVector)))
+            if (sum(sign(onsetLoc)==1) && length(onsetVector(i)==length(onsetVector)))
               onsetLoc(i) = 1; % store elapsed time in terms of buffers since last onset, when new onset is recorded
               onsetInterval = 0; % initializing onset interval counter
-	    else
+            else
               onsetLoc(i) = onsetInterval; % store elapsed time in terms of buffers since last onset, when new onset is recorded
             end
             onsetDev = sum(onsetLoc)/sum(sign(onsetLoc)); % IOI deviation
@@ -39,11 +39,11 @@ if (durationInBuffers < length(noveltyC))
         end
     end
 
-    curPos = curPos +1; % moving the window
+    %curPos = curPos +1; % moving the window
     
 else
     
-    onsetDev = 0;
+   % onsetDev = 0;
     
 end
 

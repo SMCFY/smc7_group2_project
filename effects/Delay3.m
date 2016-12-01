@@ -280,10 +280,16 @@ classdef Delay3 < audioPlugin
         % Onset Detection
         function onset(obj, x)
             
-            [l,~] = size(x);
+            [R,C] = size(x);
+            
+            % If the bufferSize has changed
+            if length(obj.FFTBuffer) ~= R
+                obj.FFTBuffer = zeros(R,C);
+                obj.noveltyC = zeros(round(obj.durationInBuffers/R),1);
+            end
             
             [obj.noveltyC, obj.FFTBuffer] = detectOnset(x, obj.noveltyC, obj.FFTBuffer);
-            [obj.onsetDev, obj.onsetInterval, obj.curPos] = localizeOnset(obj.noveltyC, round(obj.durationInBuffers/l),...
+            [obj.onsetDev, obj.onsetInterval, obj.curPos] = localizeOnset(obj.noveltyC, round(obj.durationInBuffers/R),...
                 obj.threshold, obj.temporalThreshold, obj.onsetInterval, obj.curPos, obj.onsetDev);
             
             if mod(obj.detectionCount, obj.detectionRate) == 0
