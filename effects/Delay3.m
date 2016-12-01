@@ -305,7 +305,7 @@ classdef Delay3 < audioPlugin
                     %obj.Mix = mapRange(0.8,0.3,600,80,obj.Pitch);
                     %obj.vRate = mapRange(10,2,50,0.1,obj.onsetOutput);
                     %calculateFilterCoeff(obj);
-                    disp(obj.onsetOutput)
+                    %disp(obj.onsetOutput)
                     
                     if obj.calAdaptive < obj.adaptiveCount
                         obj.adaptiveCount = 0;
