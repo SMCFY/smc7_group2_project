@@ -44,7 +44,7 @@ if sum(noveltyC) > 0            %if (durationInBuffers < length(noveltyC))
     
 else
     
-   % onsetDev = 0;
+    onsetDev = 0;
     
 end
 
