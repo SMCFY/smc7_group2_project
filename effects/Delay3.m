@@ -132,7 +132,7 @@ classdef Delay3 < audioPlugin
         
         FFTBuffer = zeros(1,4096*2);
         durationInBuffers
-        noveltyC = zeros(1,ceil(44100*2/64)); % maximum novelty curve window
+        noveltyC = zeros(1,ceil(192000*2/2)); % maximum novelty curve window
         onsetTarget = 0;
         curPos = 1;
         onsetInterval = 0;
@@ -213,7 +213,7 @@ classdef Delay3 < audioPlugin
             % Onset
             obj.FFTBuffer = zeros(1,4096*2);
             obj.durationInBuffers = 2*fs;
-            obj.noveltyC = zeros(1,ceil(44100*2/64));
+            obj.noveltyC = zeros(1,ceil(192000*2/2));
             obj.onsetTarget = 0;
             obj.curPos = 1;
             obj.onsetInterval = 0;
