@@ -361,10 +361,10 @@ classdef Delay3 < audioPlugin
             [L,~] = size(x);
             
             % If the bufferSize has changed
-           % if length(obj.FFTBuffer) ~= L
+            if length(obj.noveltyC) == 0
                 %obj.FFTBuffer = zeros(L,1);
                 obj.noveltyC = zeros(round(obj.durationInBuffers/L),1);
-           % end
+            end
             
             [obj.noveltyC, obj.FFTBuffer] = detectOnset(x, obj.noveltyC, obj.FFTBuffer);
             [obj.onsetDev, obj.onsetInterval, obj.curPos] = localizeOnset(obj.noveltyC, round(obj.durationInBuffers/L),...
@@ -392,14 +392,14 @@ classdef Delay3 < audioPlugin
                     %obj.Mix = mapRange(0.8,0.3,600,80,obj.Pitch);
                     %obj.vRate = mapRange(10,2,50,0.1,obj.onsetOutput);
                     %calculateFilterCoeff(obj);
-                    %disp(obj.onsetOutput)
+                    %disp(obj.Pitch)
                     
                     if obj.calAdaptive < obj.adaptiveCount
                         obj.adaptiveCount = 0;
                         E = energyLevel(x(:,1)',1);
                         C = centroid(x(:,1)', obj.pSR);%/(obj.pSR/2);
                         %disp(round(C/(obj.pSR/2) * 1e1)/1e1);
-                        %disp(C)
+                        disp(E)
                         obj.FeedbackLevel = mapRange(0.8,0.3,0.08,0,C);
                         obj.Fc = mapRange(1500,500,1,0,E);
                         calculateFilterCoeff(obj);
