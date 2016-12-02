@@ -1,4 +1,4 @@
-function freq = pitch_detector(signal,fs)
+function freq = pitch_detector(x,fs)
 % PITCH_DETECTOR:  Michael and Leo's pitch detection algorithm
 %
 %   INPUT:         signal: a segment of the signal that is used for 
@@ -7,13 +7,8 @@ function freq = pitch_detector(signal,fs)
 %
 %   OUTPUT:        freq:   the frequency of the calculated pitch in Hz
   
-  % if signal is stereo, change it to mono
-  [R,C] = size(signal);
-  if (R==2 || C==2)
-    %signal = (signal(:,1)+signal(:,2))/2; % TODO  stereo to mono doesn't quite work
-    signal = signal(:,2); % right channel only
-  end
-  
+  signal = x(:,2); % right channel only
+ 
   winLength = min(floor(fs/2),length(signal)); % window length is no more than 0.5 seconds long
   %hanWin = hann(winLength).*signal(1:winLength); % hanning window
   hanWin = .5*(1 - cos(2*pi*(1:winLength)'/(winLength+1)));
