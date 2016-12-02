@@ -388,7 +388,7 @@ classdef Delay3 < audioPlugin
                 case PresetEnum.Dreamy
                     %Extract audio features
                     onset(obj, x); % obj.onsetOutput stores the onset deviation in 5*fs/frameSize
-                    %pitch_detector(obj,x); % obj.Pitch
+                    obj.Pitch = pitch_detector(x,obj.pSR); % obj.Pitch
                     %obj.Mix = mapRange(0.8,0.3,600,80,obj.Pitch);
                     %obj.vRate = mapRange(10,2,50,0.1,obj.onsetOutput);
                     %calculateFilterCoeff(obj);
@@ -410,7 +410,7 @@ classdef Delay3 < audioPlugin
                 case PresetEnum.Wacky
                     %Extract audio features
                     onset(obj, x); % obj.onsetOutput stores the onset deviation in 5*fs/frameSize
-                    %pitch_detector(obj,x); % obj.Pitch
+                    obj.Pitch = pitch_detector(x,obj.pSR); % obj.Pitch
                     obj.FeedbackLevel = mapRange(0.7,0.3,500,80,obj.Pitch);
                     obj.vRate = mapRange(11,8,1,0.1,obj.onsetOutput);  
                     if obj.calAdaptive > obj.adaptiveCount
@@ -423,7 +423,7 @@ classdef Delay3 < audioPlugin
                 case PresetEnum.Rewinder
                     %Extract audio features
                     onset(obj, x); % obj.onsetOutput stores the onset deviation in 5*fs/frameSize
-                    %pitch_detector(obj,x); % obj.Pitch
+                    obj.Pitch = pitch_detector(x,obj.pSR); % obj.Pitch
                     obj.Q = mapRange(45,3,500,80,obj.Pitch);
                     if obj.calAdaptive > obj.adaptiveCount
                         obj.adaptiveCount = 0;
@@ -435,7 +435,7 @@ classdef Delay3 < audioPlugin
                 case PresetEnum.DirtyTape
                     %Extract audio features
                     onset(obj, x); % obj.onsetOutput stores the onset deviation in 5*fs/frameSize
-                    %pitch_detector(obj,x); % obj.Pitch
+                    obj.Pitch = pitch_detector(x,obj.pSR); % obj.Pitch
                     obj.FeedbackLevel = mapRange(0.8,0.3,500,80,obj.Pitch);
                     if obj.calAdaptive > obj.adaptiveCount
                         obj.adaptiveCount = 0;

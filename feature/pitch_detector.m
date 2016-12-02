@@ -15,7 +15,8 @@ function freq = pitch_detector(signal,fs)
   end
   
   winLength = min(floor(fs/2),length(signal)); % window length is no more than 0.5 seconds long
-  hanWin = hann(winLength).*signal(1:winLength); % hanning window
+  %hanWin = hann(winLength).*signal(1:winLength); % hanning window
+  hanWin = .5*(1 - cos(2*pi*(1:winLength)'/(winLength+1)));
   fftsize = 2^16;
   
   fty = fft(hanWin,fftsize); % fft of hann window, + transform length in powers of 2
