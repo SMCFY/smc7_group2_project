@@ -132,7 +132,7 @@ classdef Delay3 < audioPlugin
         
         FFTBuffer = zeros(1,4096*2);
         durationInBuffers
-        noveltyC = [];
+        noveltyC = zeros(1,ceil(44100*2/64)); % maximum novelty curve window
         onsetTarget = 0;
         curPos = 1;
         onsetInterval = 0;
@@ -213,7 +213,7 @@ classdef Delay3 < audioPlugin
             % Onset
             obj.FFTBuffer = zeros(1,4096*2);
             obj.durationInBuffers = 2*fs;
-            obj.noveltyC = [];
+            obj.noveltyC = zeros(1,ceil(44100*2/64));
             obj.onsetTarget = 0;
             obj.curPos = 1;
             obj.onsetInterval = 0;
@@ -363,14 +363,15 @@ classdef Delay3 < audioPlugin
             [L,~] = size(x);
             
             % If the bufferSize has changed
-            if length(obj.noveltyC) == 0
+            %if length(obj.noveltyC) == 0
                 %obj.FFTBuffer = zeros(L,1);
-                obj.noveltyC = zeros(round(obj.durationInBuffers/L),1);
-            end
+                %obj.noveltyC = zeros(round(obj.durationInBuffers/L),1);
+            %end
+	    noveltyCLength = round(obj.durationInBuffers/L);
             
-            [obj.noveltyC, obj.FFTBuffer] = detectOnset(x, obj.noveltyC, obj.FFTBuffer);
+            [obj.noveltyC, obj.FFTBuffer] = detectOnset(x, obj.noveltyC, obj.FFTBuffer,noveltyCLength);
             [obj.onsetDev, obj.onsetInterval, obj.curPos] = localizeOnset(obj.noveltyC, round(obj.durationInBuffers/L),...
-                obj.threshold, obj.temporalThreshold, obj.onsetInterval, obj.curPos, obj.onsetDev);
+                obj.threshold, obj.temporalThreshold, obj.onsetInterval, obj.curPos, obj.onsetDev, noveltyCLength);
             
             if mod(obj.detectionCount, obj.detectionRate) == 0
                 obj.onsetTarget = obj.onsetDev;
@@ -406,12 +407,15 @@ classdef Delay3 < audioPlugin
                         C = centroid(x(:,1)', obj.pSR);%/(obj.pSR/2);
                         %disp(round(C/(obj.pSR/2) * 1e1)/1e1);
                         %disp(E)
+
                         obj.FeedbackLevel = mapRange(0.8,0.4,0.08,0,C);
                         obj.Mix = mapRange(0.8,0.5,1000,60,obj.Pitch);
                         obj.vDepth = mapRange(20,7,2,0,E);
                         obj.vRate  = mapRange(7,3,0.3,0,obj.onsetOutput); 
                         obj.Q = mapRange(10,90,1000,80,obj.Pitch);
                         obj.Fc = mapRange(2000,1500,0.08,0,C);
+                        obj.FeedbackLevel = mapRange(0.8,0.3,0.08,0,C);
+                        obj.Fc = mapRange(1500,500,1,0,E);
                         calculateFilterCoeff(obj);
                     end
                     %Map raw feature data to ranges for the control
