@@ -1,4 +1,4 @@
-function [onsetDev, onsetInterval, curPos] = localizeOnset(noveltyC, durationInBuffers, threshold, temporalThreshold, onsetInterval, curPos, onsetDev)
+function [onsetDev, onsetInterval, curPos] = localizeOnset(noveltyC, durationInBuffers, threshold, temporalThreshold, onsetInterval, curPos, onsetDev, noveltyCLength)
 % INTER-ONSET INTERVAL DEVIATION
 %   localizing onsets in the specified time period and calculating the inter-onset interval deviation
 %	from the avarage onset interval
@@ -15,7 +15,7 @@ function [onsetDev, onsetInterval, curPos] = localizeOnset(noveltyC, durationInB
 %	curPos - window position on the novelty curve
 
 if sum(noveltyC) > 0            %if (durationInBuffers < length(noveltyC))
-    onsetVector = noveltyC; %windowed novelty curve
+    onsetVector = noveltyC(1:noveltyCLength); %windowed novelty curve
     onsetVector = filter([0.2, 0.2, 0.2, 0.2, 0.2], 1, onsetVector); %smooting
 
     onsetLoc = zeros(1,length(onsetVector));

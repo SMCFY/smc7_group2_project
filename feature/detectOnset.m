@@ -1,4 +1,4 @@
-function [noveltyC, XmagPrev] = detectOnset(signal, noveltyC,  XmagPrev)
+function [noveltyC, XmagPrev] = detectOnset(signal, noveltyC,  XmagPrev, noveltyCLength)
 % ONSET DETECTION
 %   returns a novelty curve, showing transient regions in signal based on spectral flux
 %
@@ -34,7 +34,7 @@ end
 
 XmagPrev(1,1:length(signal)) = Xmag; % storing the spectrum
 % Shift the values by one sample to make room for SF
-noveltyC(1:end-1) = noveltyC(2:end);
-noveltyC(end) = SF;
+noveltyC(1:noveltyCLength-1) = noveltyC(2:noveltyCLength);
+noveltyC(noveltyCLength) = SF;
 
 end
