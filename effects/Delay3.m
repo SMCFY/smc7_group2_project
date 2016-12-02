@@ -130,7 +130,7 @@ classdef Delay3 < audioPlugin
         
         % ONSET PARAMS -----------
         
-        FFTBuffer = zeros(4096,1);
+        FFTBuffer = zeros(1,4096*2);
         durationInBuffers
         noveltyC = [];
         onsetTarget = 0;
@@ -209,7 +209,7 @@ classdef Delay3 < audioPlugin
             obj.adaptiveBuffer = [];
             
             % Onset
-            obj.FFTBuffer = zeros(4096,1);
+            obj.FFTBuffer = zeros(1,4096*2);
             obj.durationInBuffers = 2*fs;
             obj.noveltyC = [];
             obj.onsetTarget = 0;
