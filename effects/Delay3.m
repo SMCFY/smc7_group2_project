@@ -357,20 +357,6 @@ classdef Delay3 < audioPlugin
             calculateFilterCoeff(obj);
         end
         
-        function pitch(obj, x)
-            if obj.pitchCount == obj.pitchBufferSize
-                obj.pitchCount = 0;
-                obj.pitchBuffer = [];
-            else
-                obj.pitchBuffer = [obj.pitchBuffer; x];
-            end
-            obj.pitchCount = obj.pitchCount + 1;
-            
-            if mod(obj.pitchCount,obj.pitchBufferSize) == obj.pitchBufferSize-1
-                obj.Pitch = pitch_detector(obj.pitchBuffer, obj.pSR);
-                disp(obj.Pitch)
-            end
-        end
         % Onset Detection
         function onset(obj, x)
             
@@ -404,12 +390,12 @@ classdef Delay3 < audioPlugin
                 case PresetEnum.Dreamy
                     %Extract audio features
                     onset(obj, x); % obj.onsetOutput stores the onset deviation in 5*fs/frameSize
-                    %obj.Pitch = pitch_detector(x,obj.pSR); % obj.Pitch
-                    pitch(obj, x);
+                    obj.Pitch = pitch_detector(x,obj.pSR); % obj.Pitch
+                    %pitch(obj, x);
                     %obj.Mix = mapRange(0.8,0.3,600,80,obj.Pitch);
                     %obj.vRate = mapRange(10,2,50,0.1,obj.onsetOutput);
                     %calculateFilterCoeff(obj);
-                    %disp(obj.Pitch)
+                    disp(obj.Pitch)
                     
                     if obj.calAdaptive < obj.adaptiveCount
                         obj.adaptiveCount = 0;
