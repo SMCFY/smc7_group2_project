@@ -58,8 +58,8 @@ classdef Delay3 < audioPlugin
     
     properties (Constant)
         % Preset class containing the preset variables
-        Dreamy = Preset(0.3, 0.5, 0.5, 0.8,...  % Delay, Gain, Feedback, Mix,
-                        1500, 12, 9, 3,...      % Fc, filter Q, vDepth, vRate,
+        Dreamy = Preset(0.3, 0.5, 0.5, 0.6,...  % Delay, Gain, Feedback, Mix,
+                        1500, 12, 10, 5,...      % Fc, filter Q, vDepth, vRate,
                         0.1, 0.1, 0.1, 0.2,...  % sGain, sQ, sDist, sMix
                         1, 1, 0, 0, 1, 0);      % DelayON, VibratoON, ReverseON, SaturationON, LPFON, HPFON
         Wacky = Preset(0.015, 1, 0.5, 0.7,...   % Delay, Gain, Feedback, Mix,
@@ -86,7 +86,7 @@ classdef Delay3 < audioPlugin
             'UniqueId', '4pvz',...
             audioPluginParameter('PresetChoice',...
             'DisplayName','Effect',...
-            'Mapping',{'enum','Dreamy','Wacky','Rewinder','DirtyTape'}),... % switch enumerator with different states
+            'Mapping',{'enum','Dreamy','Wacky','Rewinder','DirtyTape','Dry'}),... % switch enumerator with different states
             audioPluginParameter('Adaptive',...
             'DisplayName','Adaptive','Mapping',{'enum','OFF','ON'}),...
             audioPluginParameter('Guitar',...
@@ -124,7 +124,7 @@ classdef Delay3 < audioPlugin
         
         %---------------------------
         % Adaptive variables 
-        calAdaptive = 20; % amount of frames before calculate a new variable
+        calAdaptive = 50; % amount of frames before calculate a new variable
         adaptiveCount = 0;
         adaptiveBuffer = [];
         
@@ -389,22 +389,29 @@ classdef Delay3 < audioPlugin
             switch obj.PresetChoice
                 case PresetEnum.Dreamy
                     %Extract audio features
-                    onset(obj, x); % obj.onsetOutput stores the onset deviation in 5*fs/frameSize
-                    obj.Pitch = pitch_detector(x,obj.pSR); % obj.Pitch
+                    %onset(obj, x); % obj.onsetOutput stores the onset deviation in 5*fs/frameSize
+                    %obj.Pitch = pitch_detector(x,obj.pSR); % obj.Pitch
                     %pitch(obj, x);
-                    %obj.Mix = mapRange(0.8,0.3,600,80,obj.Pitch);
-                    %obj.vRate = mapRange(10,2,50,0.1,obj.onsetOutput);
+                    %obj.Mix = mapRange(0.8,0.6,600,60,obj.Pitch);
+                    %obj.vRate = mapRange(10,2,0.9,0.1,obj.onsetOutput);
                     %calculateFilterCoeff(obj);
-                    disp(obj.onsetOutput)
+                    %disp(obj.onsetOutput)
                     
                     if obj.calAdaptive < obj.adaptiveCount
                         obj.adaptiveCount = 0;
+                        onset(obj, x); % obj.onsetOutput stores the onset deviation in 5*fs/frameSize
+                        obj.Pitch = pitch_detector(x,obj.pSR);
+                        
                         E = energyLevel(x(:,1)',1);
                         C = centroid(x(:,1)', obj.pSR);%/(obj.pSR/2);
                         %disp(round(C/(obj.pSR/2) * 1e1)/1e1);
-                        disp(E)
-                        obj.FeedbackLevel = mapRange(0.8,0.3,0.08,0,C);
-                        obj.Fc = mapRange(1500,500,1,0,E);
+                        %disp(E)
+                        obj.FeedbackLevel = mapRange(0.8,0.4,0.08,0,C);
+                        obj.Mix = mapRange(0.8,0.5,1000,60,obj.Pitch);
+                        obj.vDepth = mapRange(20,7,2,0,E);
+                        obj.vRate  = mapRange(7,3,0.3,0,obj.onsetOutput); 
+                        obj.Q = mapRange(10,90,1000,80,obj.Pitch);
+                        obj.Fc = mapRange(2000,1500,0.08,0,C);
                         calculateFilterCoeff(obj);
                     end
                     %Map raw feature data to ranges for the control
@@ -518,12 +525,16 @@ classdef Delay3 < audioPlugin
             end
             xd = zeros(size(x));
 	    % calculate effect + filter
+        if obj.PresetChoice == PresetEnum.Dry
+            y = x;
+        else
             [x, xd] = setEffect(obj, x, xd);
             
             % Calculate output by adding wet and dry signal in appropriate
             % ratio
             mix = obj.Mix;
             y = (1-mix)*x + (mix)*(obj.Gain.*xd);
+        end
         end
     end
 end
