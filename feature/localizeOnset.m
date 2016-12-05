@@ -21,7 +21,7 @@ if sum(noveltyC) > 0            %if (durationInBuffers < length(noveltyC))
     onsetLoc = zeros(1,length(onsetVector));
     for i=1:length(onsetVector)
         if (onsetVector(i)>threshold && temporalThreshold<0)
-            if (sum(sign(onsetLoc)==1) && length(onsetVector(i)==length(onsetVector)))
+            if (sum(sign(onsetLoc)==1))
               onsetLoc(i) = 1; % store elapsed time in terms of buffers since last onset, when new onset is recorded
               onsetInterval = 0; % initializing onset interval counter
             else
