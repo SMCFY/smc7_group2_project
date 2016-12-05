@@ -1,0 +1,7 @@
+classdef EffectFillEnum < int8
+    enumeration   
+        Nothing  (0)
+        Vibrato (1)
+        SawtoothModulation (2)
+    end
+end
