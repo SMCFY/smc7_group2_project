@@ -56,13 +56,8 @@ classdef DreamyTwo < audioPlugin
             'VendorName', '', ...
             'VendorVersion', '1.0', ...
             'UniqueId', '3ods',...
-            audioPluginParameter('PresetChoice',...
-            'DisplayName','Effect',...
-            'Mapping',{'enum','Dreamy','Dry'}),... % switch enumerator with different states
             audioPluginParameter('Adaptive',...
-            'DisplayName','Version','Mapping',{'enum','A','B'}),...
-            audioPluginParameter('Guitar',...
-            'DisplayName','Guitar','Mapping',{'enum','Not Connected','Connected'}));
+            'DisplayName','Version','Mapping',{'enum','A','B'}));
     end
     
     properties (Access = private)
@@ -286,24 +281,20 @@ classdef DreamyTwo < audioPlugin
             
         % output function, gets called at buffer speed
         function y = process(obj, x)
-            if obj.Guitar == GuitarEnum.Connected
-                x(:,2) = x(:,1);
-            end
+            
             if obj.Adaptive == AdaptiveEnumDreamy.A
                 addAdaptive(obj,x)
             end
             %xd = zeros(size(x));
 	    % calculate effect + filter
-            if obj.PresetChoice == PresetEnumDreamy.Dry
-                y = x;
-            else
+       
                 [x, xd] = setEffect(obj, x);
 
                 % Calculate output by adding wet and dry signal in appropriate
                 % ratio
                 mix = obj.Mix;
                 y = (1-mix)*x + (mix)*(obj.Gain.*xd);
-            end
+           
         end
     end
 end
