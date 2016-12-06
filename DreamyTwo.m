@@ -253,7 +253,6 @@ classdef DreamyTwo < audioPlugin
                 C = centroid(x(:,1)', obj.pSR);
                 
                 % Adaptive mapping
-                obj.FeedbackLevel = mapRange(0.8,0.4,0.08,0,C);
                 obj.Mix = mapRange(0.8,0.5,1000,60,obj.Pitch);
                 obj.vDepth = mapRange(20,7,2,0,E);
                 obj.vRate  = mapRange(7,3,0.3,0,obj.onsetOutput);
