@@ -408,12 +408,10 @@ classdef Delay3 < audioPlugin
                         %disp(round(C/(obj.pSR/2) * 1e1)/1e1);
                         %disp(E)
 
-                        obj.FeedbackLevel = mapRange(0.8,0.4,0.08,0,C);
                         obj.Mix = mapRange(0.8,0.5,1000,60,obj.Pitch);
                         obj.vDepth = mapRange(20,7,2,0,E);
                         obj.vRate  = mapRange(7,3,0.3,0,obj.onsetOutput); 
                         obj.Q = mapRange(10,90,1000,80,obj.Pitch);
-                        obj.Fc = mapRange(2000,1500,0.08,0,C);
                         obj.FeedbackLevel = mapRange(0.8,0.3,0.08,0,C);
                         obj.Fc = mapRange(1500,500,1,0,E);
                         calculateFilterCoeff(obj);
