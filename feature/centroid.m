@@ -4,7 +4,7 @@ function C = centroid(x,fs)
 %
 % ARGUMENTS:
 %   x - input signal
-% 	 fs - sampling frequency
+% 	fs - sampling frequency
 
     M = length(x);
     ham = .54 - .46*cos(2*pi*(0:M-1)'/(M-1));
