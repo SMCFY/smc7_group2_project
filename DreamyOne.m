@@ -92,7 +92,7 @@ classdef DreamyOne < audioPlugin
         durationInBuffers
         noveltyC = zeros(1,ceil(192000*2/2)); % maximum novelty curve window
         onsetTarget = 0;
-        curPos = 1;
+        %curPos = 1;
         onsetInterval = 0;
         threshold = 30;
         temporalThreshold = 0;
@@ -163,7 +163,7 @@ classdef DreamyOne < audioPlugin
             obj.durationInBuffers = 2*fs;
             obj.noveltyC = zeros(1,ceil(192000*2/2));
             obj.onsetTarget = 0;
-            obj.curPos = 1;
+            %obj.curPos = 1;
             obj.onsetInterval = 0;
             obj.threshold = 30;
             obj.temporalThreshold = 0;
@@ -221,8 +221,8 @@ classdef DreamyOne < audioPlugin
             noveltyCLength = round(obj.durationInBuffers/L);
             
             [obj.noveltyC, obj.FFTBuffer] = detectOnset(x, obj.noveltyC, obj.FFTBuffer,noveltyCLength);
-            [obj.onsetDev, obj.onsetInterval, obj.curPos] = localizeOnset(obj.noveltyC, round(obj.durationInBuffers/L),...
-                obj.threshold, obj.temporalThreshold, obj.onsetInterval, obj.curPos, obj.onsetDev, noveltyCLength);
+            [obj.onsetDev, obj.onsetInterval] = localizeOnset(obj.noveltyC, round(obj.durationInBuffers/L),...
+                obj.threshold, obj.temporalThreshold, obj.onsetInterval, obj.onsetDev, noveltyCLength);
             
             if mod(obj.detectionCount, obj.detectionRate) == 0
                 obj.onsetTarget = obj.onsetDev;
@@ -236,13 +236,13 @@ classdef DreamyOne < audioPlugin
         
         %Adaptive mapping function. 
         function addAdaptive(obj,x)
+            onset(obj, x); % obj.onsetOutput stores the onset deviation in 5*fs/frameSize
             
             %Extract audio features
             if obj.calAdaptive < obj.adaptiveCount
                 obj.adaptiveCount = 0;
                 
                 % Feature Extraction
-                onset(obj, x); % obj.onsetOutput stores the onset deviation in 5*fs/frameSize
                 obj.Pitch = pitch_detector(x,obj.pSR);
                 E = energyLevel(x(:,1)',1);
                 C = centroid(x(:,1)', obj.pSR);

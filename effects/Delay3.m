@@ -134,7 +134,7 @@ classdef Delay3 < audioPlugin
         durationInBuffers
         noveltyC = zeros(1,ceil(192000*2/2)); % maximum novelty curve window
         onsetTarget = 0;
-        curPos = 1;
+        %curPos = 1;
         onsetInterval = 0;
         threshold = 30;
         temporalThreshold = 0;
@@ -215,7 +215,7 @@ classdef Delay3 < audioPlugin
             obj.durationInBuffers = 2*fs;
             obj.noveltyC = zeros(1,ceil(192000*2/2));
             obj.onsetTarget = 0;
-            obj.curPos = 1;
+            %obj.curPos = 1;
             obj.onsetInterval = 0;
             obj.threshold = 30;
             obj.temporalThreshold = 0;
@@ -370,8 +370,8 @@ classdef Delay3 < audioPlugin
 	    noveltyCLength = round(obj.durationInBuffers/L);
             
             [obj.noveltyC, obj.FFTBuffer] = detectOnset(x, obj.noveltyC, obj.FFTBuffer,noveltyCLength);
-            [obj.onsetDev, obj.onsetInterval, obj.curPos] = localizeOnset(obj.noveltyC, round(obj.durationInBuffers/L),...
-                obj.threshold, obj.temporalThreshold, obj.onsetInterval, obj.curPos, obj.onsetDev, noveltyCLength);
+            [obj.onsetDev, obj.onsetInterval] = localizeOnset(obj.noveltyC, round(obj.durationInBuffers/L),...
+                obj.threshold, obj.temporalThreshold, obj.onsetInterval, obj.onsetDev, noveltyCLength);
             
             if mod(obj.detectionCount, obj.detectionRate) == 0
                 obj.onsetTarget = obj.onsetDev;
@@ -397,10 +397,10 @@ classdef Delay3 < audioPlugin
                     %obj.vRate = mapRange(10,2,0.9,0.1,obj.onsetOutput);
                     %calculateFilterCoeff(obj);
                     %disp(obj.onsetOutput)
-                    
+                    onset(obj, x); % obj.onsetOutput stores the onset deviation in 5*fs/frameSize
+
                     if obj.calAdaptive < obj.adaptiveCount
                         obj.adaptiveCount = 0;
-                        onset(obj, x); % obj.onsetOutput stores the onset deviation in 5*fs/frameSize
                         obj.Pitch = pitch_detector(x,obj.pSR);
                         
                         E = energyLevel(x(:,1)',1);
