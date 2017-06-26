@@ -1,12 +1,34 @@
-classdef FeatureExtraction
+classdef FeatureExtraction < handle 
     %Collection of feature extraction algorithms
     %   Detailed explanation goes here
     
-    properties
+    properties (Access = private)
+        Fs
+        hannWin = zeros(1,4096*2)
+        fftBuffer = zeros(1,4096*2)
+        
+         % Pitch 
+        Pitch = 0;
+        pitchCount = 0;
+        pitchBufferSize = 20;
+        pitchBuffer = [];
+        
     end
     
     methods
-        function obj = FeatureExtraction()
+        function obj = FeatureExtraction(Fs)
+            obj.Fs = Fs;
+        end
+        
+        % resets internal states of buffers
+        function reset(obj, fs)
+            % Reset sample rate
+           
+            obj.pSR = fs;            
+            obj.FFTBuffer = zeros(1,4096*2);
+            % --------------
+            % Pitch 
+            obj.Pitch = 0;
         end
         function C = centroid(x,fs)
             %SPECTRAL CENTROID
@@ -49,6 +71,21 @@ classdef FeatureExtraction
             E = real(sum(wconv(x2,window,length(x)))/length(x));
             
         end
+        function y = wconv( x, A, L )
+            %code based on work by
+            %   Author: Nabin Sharma
+            %   Date: 2009/03/15
+            % generate the window
+            M = length(x);
+            ham = .54 - .46*cos(2*pi*(0:M-1)'/(M-1));
+            window = A.*ham';
+            
+            % perform the convolution using FFT
+            NFFT = 2^(nextpow2(length(x)+L));
+            X = fft(x,NFFT); W = fft(window,NFFT);
+            Y = X.*W;
+            y = ifft(Y,NFFT);
+        end
         function freq = pitch_detector(x,fs)
             % PITCH_DETECTOR:  Michael and Leo's pitch detection algorithm
             %
@@ -85,26 +122,7 @@ classdef FeatureExtraction
             % of non-integer issue
             
             mult = x.*down_sample2.*down_sample3.*down_sample4; % multiply original signal with the
-            % various down-sampled versions
-            % mutltiplied together to increase the fundamental frequency and
-            % attenuate the higher harmonics
-            
-            
-            % the following plots were used for testing purposes
-            
-            % plot the fundamental frequency
-            %plot([1:(length(x)/8)]*((fs/2)/(fftsize/2)),mult(1:(length(mult)/8)));
-            %title('fundamental frequency')
-            %figure
-            %plot([1:length(x)]*((fs/2)/(fftsize/2)),x) % original
-            %title('original spectrum of the signal')
-            
-            % plot frequencies in the range of 0 to an eighth of the sample rate
-            %xlim([0 floor(fs/8)]);
-            % frequencies are plotted in increments of 500 Hz
-            %set(gca,'XTick',0:500:floor(fs/8));
-            
-            
+                      
             [max_freq, freq] = max(mult);
             
             freq = freq*((fs/2)/(fftsize/2));

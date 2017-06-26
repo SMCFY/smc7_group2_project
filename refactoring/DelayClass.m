@@ -1,14 +1,17 @@
-classdef DelayClass
+classdef DelayClass < handle
     % reverse and normal delay structure
     %   Might be unnecessary, lets see.
     
-    properties
+    properties (Dependent)
         FeedbackLevel
     end
     
     properties(Access = private)
         pFractionalDelay
         pSR
+         % reverse buffer
+        rBuffer
+        rPointer = 1;
     end
     methods
         function obj = DelayClass(Fs)
@@ -16,6 +19,21 @@ classdef DelayClass
             obj.pFractionalDelay = audioexample.DelayFilter( ...
                 'FeedbackLevel', 0.35, ...
                 'SampleRate', Fs);
+        end
+        
+        % resets internal states of buffers
+        function reset(obj, fs)
+            % Reset sample rate 
+            obj.pSR = fs;
+            
+            % Reset delay
+            obj.pFractionalDelay.SampleRate = fs;
+            reset(obj.pFractionalDelay);
+            
+            % reset reverse buffer
+            obj.rBuffer = zeros(fs*2+1,2); % max delay time in samples
+            obj.rPointer = 1;
+           
         end
         %set and get for audioexample.DelayFilter class, might not be
         %needed
